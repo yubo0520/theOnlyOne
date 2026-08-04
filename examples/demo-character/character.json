@@ -1,0 +1,8 @@
+{
+  "id": "demo-character",
+  "name": "林川",
+  "description": "A fictional character used only to demonstrate the public character-pack format.",
+  "default_voice": "",
+  "persona": "persona.md"
+}
+
