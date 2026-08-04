@@ -1,9 +1,9 @@
-# ohMyLover
+# theOnlyOne
 
 > [!IMPORTANT]
-> **Demo / Work in Progress** — ohMyLover is an early technical prototype under active construction. It is not a finished application, hosted service, or production-ready AI companion. APIs, data formats, and architecture may change.
+> **Demo / Work in Progress** — theOnlyOne is an early technical prototype under active construction. It is not a finished application, hosted service, or production-ready AI companion. APIs, data formats, and architecture may change.
 
-**ohMyLover** is a local-first character-agent engine for experimenting with grounded personas, retrievable character memories, streaming conversation, and optional voice services.
+**theOnlyOne** is a local-first character-agent engine for experimenting with grounded personas, retrievable character memories, streaming conversation, and optional voice services.
 
 This is the sanitized, character-agnostic engine. It intentionally contains no private conversations, cloned voices, model weights, scraped scripts, or copyrighted character packs.
 
@@ -35,10 +35,10 @@ python -m pip install -e ".[dev]"
 Copy-Item .env.example .env
 ```
 
-The default `OML_DEMO_MODE=true` works without an API key and streams a fixed local reply. To use a real model, fill in the provider values in `.env`. Then run:
+The default `THEONLYONE_DEMO_MODE=true` works without an API key and streams a fixed local reply. To use a real model, fill in the provider values in `.env`. Then run:
 
 ```powershell
-ohmylover
+theonlyone
 ```
 
 Open `http://127.0.0.1:8000` for the Demo UI or `/api/status` for service status.
@@ -57,7 +57,7 @@ Open `http://127.0.0.1:8000` for the Demo UI or `/api/status` for service status
 }
 ```
 
-Character data can stay in a private directory selected by `OML_CHARACTER_DIR`. See [Character packs](docs/CHARACTER_PACKS.md).
+Character data can stay in a private directory selected by `THEONLYONE_CHARACTER_DIR`. See [Character packs](docs/CHARACTER_PACKS.md).
 
 Before publishing changes, run:
 

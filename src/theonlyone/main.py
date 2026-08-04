@@ -18,7 +18,7 @@ from .memory import format_cards, load_cards, retrieve
 
 settings = Settings.load()
 characters = CharacterStore(settings.character_dir)
-app = FastAPI(title="ohMyLover", version="0.1.0")
+app = FastAPI(title="theOnlyOne", version="0.1.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://127.0.0.1", "http://localhost"],
@@ -115,14 +115,14 @@ async def stream_chat(request: ChatRequest):
     if not settings.llm_api_key:
         if not settings.demo_mode:
             error = json.dumps(
-                {"error": "OML_LLM_API_KEY is not configured"}, ensure_ascii=False
+                {"error": "THEONLYONE_LLM_API_KEY is not configured"}, ensure_ascii=False
             )
             yield f"data: {error}\n\n"
             yield "data: [DONE]\n\n"
             return
         demo_reply = (
             "语气：唠嗑\n"
-            "话：我在。这是 ohMyLover 的本地演示回复，"
+            "话：我在。这是 theOnlyOne 的本地演示回复，"
             "现在已经能把文字一段一段流出来了。"
         )
         for piece in demo_reply:
@@ -194,4 +194,4 @@ async def voice_proxy(path: str, request: Request) -> Response:
 
 
 def run() -> None:
-    uvicorn.run("ohmylover.main:app", host=settings.host, port=settings.port, reload=False)
+    uvicorn.run("theonlyone.main:app", host=settings.host, port=settings.port, reload=False)

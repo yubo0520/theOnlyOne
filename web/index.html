@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ohMyLover Demo</title>
+<title>theOnlyOne Demo</title>
 <script>
 /* 全本地：把 support.js 里的 unpkg CDN 地址映射到本地 vendor/（support.js 原生支持这个覆盖钩子） */
 window.__resources = {
@@ -167,7 +167,7 @@ window.__resources = {
                 <div style="display:flex; flex-direction:column; gap:12px; margin-top:16px;">
                   <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
                     <span style="font-size:14px; font-weight:700; white-space:nowrap;">① 后端是否在跑</span>
-                    <code style="flex:1; min-width:180px; font-family:'JetBrains Mono',ui-monospace,monospace; font-size:13px; background:var(--code-bg); color:#ffd84d; padding:9px 14px; border-radius:10px;">ohmylover</code>
+                    <code style="flex:1; min-width:180px; font-family:'JetBrains Mono',ui-monospace,monospace; font-size:13px; background:var(--code-bg); color:#ffd84d; padding:9px 14px; border-radius:10px;">theonlyone</code>
                     <button onClick="{{ copyBackendCmd }}" style="white-space:nowrap; background:var(--chrome2); border:2.5px solid var(--line); border-radius:999px; padding:5px 14px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:3px 3px 0 var(--line);" style-hover="background:#ffd84d;" style-active="transform:translate(2px,2px); box-shadow:0 0 0 var(--line);">复制</button>
                   </div>
                   <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
@@ -599,7 +599,7 @@ class Component extends DCLogic {
   _replyClips = [];
   _replySegments = [];
   _replyMsgId = "";
-  _histKey = "ohmylover_demo_chat_v1";
+  _histKey = "theonlyone_demo_chat_v1";
 
   get api() {
     return this.props.apiBase
@@ -1354,7 +1354,7 @@ class Component extends DCLogic {
 
   // ---- 主题：跟随系统 + 记住手动选择 ----
 
-  _themeKey = "ohmylover_demo_theme_v1";
+  _themeKey = "theonlyone_demo_theme_v1";
 
   // 变量也写到 <html> 上：body 在根 div 外面继承不到，
   // 顺便设 color-scheme 让原生下拉框/滚动条跟着变深
@@ -1881,7 +1881,7 @@ class Component extends DCLogic {
       send: this.send,
       sendDisabled: sendOff,
       sendButtonStyle: "width:42px; height:42px; flex:none; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; border:2.5px solid var(--line); cursor:" + (sendOff ? "default" : "pointer") + "; color:" + (sendOff ? "var(--line)" : "var(--on-solid)") + "; background:" + (sendOff ? dead : "var(--line)") + "; box-shadow:" + (sendOff ? "none" : "3px 3px 0 #f0876b") + ";",
-      copyBackendCmd: () => this.copy("ohmylover"),
+      copyBackendCmd: () => this.copy("theonlyone"),
       copyOllamaCmd: () => this.copy("ollama serve"),
       copyTranscribeCmd: () => this.copy("python3 转写.py 录音/我"),
 

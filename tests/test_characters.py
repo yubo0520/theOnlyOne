@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from ohmylover.characters import CharacterStore
+from theonlyone.characters import CharacterStore
 
 
 def test_demo_character_loads():

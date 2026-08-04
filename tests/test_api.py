@@ -2,7 +2,7 @@ import json
 
 from fastapi.testclient import TestClient
 
-from ohmylover.main import app
+from theonlyone.main import app
 
 client = TestClient(app)
 
@@ -21,7 +21,7 @@ def test_status_and_demo_character_are_available():
 def test_demo_ui_is_served_without_private_assets():
     response = client.get("/app/")
     assert response.status_code == 200
-    assert "ohMyLover Demo" in response.text
+    assert "theOnlyOne Demo" in response.text
     assert "Ezreal" in response.text
 
     support = client.get("/app/support.js")
@@ -46,5 +46,5 @@ def test_chat_stream_works_without_an_api_key_in_demo_mode():
     for line in response.text.splitlines():
         if line.startswith("data: {"):
             chunks.append(json.loads(line[6:])["delta"])
-    assert "ohMyLover" in "".join(chunks)
+    assert "theOnlyOne" in "".join(chunks)
     assert "data: [DONE]" in response.text

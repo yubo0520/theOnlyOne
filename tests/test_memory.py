@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from ohmylover.memory import load_cards, retrieve
+from theonlyone.memory import load_cards, retrieve
 
 
 def test_retrieval_finds_relevant_card():
@@ -9,4 +9,3 @@ def test_retrieval_finds_relevant_card():
     result = retrieve(cards, "第一次为什么深夜还开着店", limit=1)
     assert result
     assert result[0].title == "第一次见面"
-
