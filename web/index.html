@@ -1,0 +1,1984 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ohMyLover Demo</title>
+<script>
+/* 全本地：把 support.js 里的 unpkg CDN 地址映射到本地 vendor/（support.js 原生支持这个覆盖钩子） */
+window.__resources = {
+  "https://unpkg.com/react@18.3.1/umd/react.production.min.js": "./vendor/react.production.min.js",
+  "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js": "./vendor/react-dom.production.min.js"
+};
+</script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/organic-89818b99-b6ab-4efd-90a2-67403962f279/styles.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
+<script src="_ds/organic-89818b99-b6ab-4efd-90a2-67403962f279/_ds_bundle.js"></script>
+<style>
+  body { margin: 0; font-family: "Noto Sans SC", system-ui, sans-serif; font-weight: 500; background: var(--bg); color: var(--fg); }
+  a { color: var(--fg); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+  a:hover { color: #b2410f; }
+  input, textarea, select, button { font-family: inherit; }
+  button:focus-visible, select:focus-visible { outline: 3px solid #ffd84d; outline-offset: 2px; }
+  input:focus, input:focus-visible, textarea:focus, textarea:focus-visible { outline: none; }
+  ::selection { background: #ffd84d; }
+  ::-webkit-scrollbar { width: 12px; height: 12px; }
+  ::-webkit-scrollbar-thumb { background: var(--solid); border: 3px solid var(--bg); border-radius: 999px; }
+  @keyframes dotBounce { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-5px) } }
+  @keyframes recRing { 0% { box-shadow: 4px 4px 0 var(--line), 0 0 0 0 rgba(240,135,107,.7) } 100% { box-shadow: 4px 4px 0 var(--line), 0 0 0 22px rgba(240,135,107,0) } }
+  /* 正在说话：文字还没上屏，先立一排跳动的声波 */
+  @keyframes waveBar { 0%,100% { transform: scaleY(.28) } 50% { transform: scaleY(1) } }
+  .wv { display:flex; align-items:center; gap:4px; height:26px; }
+  .wv i { display:block; width:5px; height:100%; border-radius:3px; background:var(--solid); transform-origin:center; animation:waveBar .85s ease-in-out infinite; }
+  .wv i:nth-child(2) { animation-delay:.09s; background:#f0876b }
+  .wv i:nth-child(3) { animation-delay:.18s }
+  .wv i:nth-child(4) { animation-delay:.27s; background:#ffd84d }
+  .wv i:nth-child(5) { animation-delay:.36s }
+  .wv i:nth-child(6) { animation-delay:.45s; background:#35b39a }
+  .wv i:nth-child(7) { animation-delay:.54s }
+  .wv i:nth-child(8) { animation-delay:.63s; background:#f0876b }
+  .wv i:nth-child(9) { animation-delay:.72s }
+</style>
+</helmet>
+
+<div style="{{ rootStyle }}">
+
+  <header style="position:relative; z-index:20; flex:none; display:flex; align-items:center; gap:22px; padding:12px 26px; background:var(--chrome); border-bottom:2.5px solid var(--line);">
+    <div style="display:flex; flex-direction:column; min-width:104px;">
+      <span style="font-weight:900; font-size:20px; letter-spacing:-.01em;">Ezreal</span>
+      <span style="font-size:12px; font-weight:700; opacity:.58;">{{ presenceText }}</span>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button onClick="{{ goChat }}" style="{{ navChat }}" style-hover="transform:translate(-1px,-1px);">聊天</button>
+      <button onClick="{{ goFavorites }}" style="{{ navFavorites }}" style-hover="transform:translate(-1px,-1px);">收藏</button>
+    </div>
+    <div style="flex:1; min-width:20px;"></div>
+    <button onClick="{{ toggleTheme }}" title="白天 / 黑夜" style="{{ themeBtnStyle }}" style-hover="transform:translate(-1px,-1px); box-shadow:4px 4px 0 var(--line);" style-active="transform:translate(2px,2px); box-shadow:0 0 0 var(--line);">{{ themeLabel }}</button>
+    <button onClick="{{ toggleSettings }}" title="设置" style="{{ settingsBtnStyle }}" style-hover="transform:translate(-1px,-1px); box-shadow:4px 4px 0 var(--line);" style-active="transform:translate(2px,2px); box-shadow:0 0 0 var(--line);">设置</button>
+    <sc-if value="{{ settingsOpen }}">
+      <div style="position:absolute; top:64px; right:24px; width:min(390px,calc(100vw - 48px)); background:var(--surf); border:2.5px solid var(--line); border-radius:18px; box-shadow:7px 7px 0 var(--line); padding:16px; display:flex; flex-direction:column; gap:14px; z-index:30;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <strong style="font-size:16px;">聊天设置</strong>
+          <div style="flex:1;"></div>
+          <button onClick="{{ toggleSettings }}" style="border:0; background:transparent; font-size:13px; font-weight:800; cursor:pointer; color:var(--fg);">关闭</button>
+        </div>
+        <label style="display:flex; align-items:center; gap:10px; font-size:13px; font-weight:700;">
+          <span style="width:52px;">模型</span>
+          <select onChange="{{ onModelChange }}" value="{{ model }}" style="flex:1; background:var(--surf2); border:2px solid var(--line); border-radius:999px; padding:7px 12px; font-weight:700;">
+            <sc-for list="{{ models }}" as="m" hint-placeholder-count="1"><option value="{{ m }}">{{ m }}</option></sc-for>
+          </select>
+        </label>
+        <sc-if value="{{ hasManyVoices }}">
+          <label style="display:flex; align-items:center; gap:10px; font-size:13px; font-weight:700;">
+            <span style="width:52px;">音色</span>
+            <select onChange="{{ onVoiceChange }}" value="{{ curVoice }}" style="flex:1; background:var(--surf2); border:2px solid var(--line); border-radius:999px; padding:7px 12px; font-weight:700;">
+              <sc-for list="{{ voices }}" as="v" hint-placeholder-count="1"><option value="{{ v }}">{{ v }}</option></sc-for>
+            </select>
+          </label>
+        </sc-if>
+        <div style="height:1.5px; background:rgba(var(--line-rgb),.18);"></div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button onClick="{{ toggleDebug }}" style="{{ settingsActionStyle }}">调试</button>
+          <sc-if value="{{ hasChat }}"><button onClick="{{ clearChat }}" style="{{ settingsActionStyle }}">清空聊天</button></sc-if>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ demo }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex; align-items:center; gap:9px; background:#f0876b; border:2.5px solid var(--line); box-shadow:3px 3px 0 var(--line); border-radius:999px; padding:7px 16px; font-size:13px; font-weight:700;">
+        <span style="width:9px; height:9px; border-radius:999px; background:var(--solid); display:inline-block;"></span>
+        演示模式：后端未连接。启动后端后刷新即可使用真实功能
+      </div>
+    </sc-if>
+  </header>
+
+  <main style="flex:1; min-height:0; display:flex; flex-direction:column;">
+
+    <!-- 聊天 -->
+    <sc-if value="{{ isChat }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex; flex-direction:column; height:100%; min-height:0;">
+
+        <div style="flex:1; min-height:0; display:flex;">
+        <div id="chat-scroll" style="flex:1; min-height:0; overflow:auto; padding:28px 30px;">
+          <div style="max-width:860px; margin:0 auto; display:flex; flex-direction:column; gap:12px;">
+
+            <sc-if value="{{ noMaterials }}">
+              <div style="background:#f0876b; border:3px solid var(--line); border-radius:18px; box-shadow:6px 6px 0 var(--line); padding:22px 26px; transform:rotate(-.5deg);">
+                <div style="font-size:19px; font-weight:900; line-height:1.7;">答案一份都没有。现在跟它聊，聊的是模型的先验，不是你。先去答题。</div>
+                <button onClick="{{ goQuestions }}" style="margin-top:16px; white-space:nowrap; background:var(--code-bg); color:var(--on-solid); border:2.5px solid var(--line); border-radius:999px; padding:9px 20px; font-size:14px; font-weight:700; cursor:pointer; box-shadow:4px 4px 0 #ffd84d;" style-hover="transform:translate(-2px,-2px); box-shadow:6px 6px 0 #ffd84d;" style-active="transform:translate(2px,2px); box-shadow:0 0 0 #ffd84d;">去回答问题 →</button>
+              </div>
+            </sc-if>
+
+            <sc-for list="{{ chatMessages }}" as="msg" hint-placeholder-count="2">
+              <div style="display:flex; flex-direction:column; gap:12px;">
+              <sc-if value="{{ msg.showDate }}">
+                <div style="display:flex; align-items:center; gap:12px; margin:8px 0; color:var(--muted);">
+                  <span style="height:1px; background:rgba(var(--line-rgb),.14); flex:1;"></span>
+                  <span style="font-size:12px; font-weight:700;">{{ msg.dateLabel }}</span>
+                  <span style="height:1px; background:rgba(var(--line-rgb),.14); flex:1;"></span>
+                </div>
+              </sc-if>
+              <div style="{{ msg.lineStyle }}">
+                <div style="{{ msg.avatarStyle }}">{{ msg.avatarText }}</div>
+                <div style="{{ msg.rowStyle }}">
+                  <sc-if value="{{ msg.hasText }}">
+                    <div style="{{ msg.bubbleStyle }}">{{ msg.display }}</div>
+                  </sc-if>
+                  <sc-if value="{{ msg.wave }}">
+                    <div style="{{ msg.waveBubbleStyle }}">
+                      <div class="wv"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ msg.showTime }}">
+                    <span style="font-size:11px; opacity:.42; font-weight:700; padding:0 5px;">{{ msg.timeText }}</span>
+                  </sc-if>
+                  <div style="display:flex; gap:10px; align-items:center;">
+                    <sc-if value="{{ msg.showSpeak }}">
+                      <button onClick="{{ msg.onSpeak }}" style="{{ quietActionStyle }}">{{ msg.speakLabel }}</button>
+                    </sc-if>
+                    <sc-if value="{{ msg.showFav }}">
+                      <button onClick="{{ msg.onFav }}" disabled="{{ msg.favBusy }}" style="{{ quietActionStyle }}">收藏</button>
+                    </sc-if>
+                  </div>
+                </div>
+              </div>
+              </div>
+            </sc-for>
+
+            <sc-if value="{{ waiting }}">
+              <div style="display:flex; gap:10px; align-items:flex-start;">
+                <div style="width:38px; height:38px; flex:none; border-radius:12px; background:#ffd84d; border:2px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:900;">E</div>
+                <div style="display:flex; gap:7px; align-items:center; padding:14px 18px; width:fit-content; background:var(--surf); border:2px solid var(--line); border-radius:16px 16px 16px 5px;">
+                  <span style="width:8px; height:8px; border-radius:999px; background:var(--solid); animation:dotBounce .9s infinite;"></span>
+                  <span style="width:8px; height:8px; border-radius:999px; background:#f0876b; animation:dotBounce .9s infinite .15s;"></span>
+                  <span style="width:8px; height:8px; border-radius:999px; background:#ffd84d; animation:dotBounce .9s infinite .3s;"></span>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ chatError }}">
+              <div style="background:var(--surf); border:3px solid var(--line); border-radius:18px; box-shadow:6px 6px 0 #f0876b; padding:22px 24px; max-width:660px;">
+                <div style="font-size:18px; font-weight:900;">连不上模型。检查：</div>
+                <div style="display:flex; flex-direction:column; gap:12px; margin-top:16px;">
+                  <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                    <span style="font-size:14px; font-weight:700; white-space:nowrap;">① 后端是否在跑</span>
+                    <code style="flex:1; min-width:180px; font-family:'JetBrains Mono',ui-monospace,monospace; font-size:13px; background:var(--code-bg); color:#ffd84d; padding:9px 14px; border-radius:10px;">ohmylover</code>
+                    <button onClick="{{ copyBackendCmd }}" style="white-space:nowrap; background:var(--chrome2); border:2.5px solid var(--line); border-radius:999px; padding:5px 14px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:3px 3px 0 var(--line);" style-hover="background:#ffd84d;" style-active="transform:translate(2px,2px); box-shadow:0 0 0 var(--line);">复制</button>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                    <span style="font-size:14px; font-weight:700; white-space:nowrap;">② Ollama 是否在跑</span>
+                    <code style="flex:1; min-width:180px; font-family:'JetBrains Mono',ui-monospace,monospace; font-size:13px; background:var(--code-bg); color:#ffd84d; padding:9px 14px; border-radius:10px;">ollama serve</code>
+                    <button onClick="{{ copyOllamaCmd }}" style="white-space:nowrap; background:var(--chrome2); border:2.5px solid var(--line); border-radius:999px; padding:5px 14px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:3px 3px 0 var(--line);" style-hover="background:#ffd84d;" style-active="transform:translate(2px,2px); box-shadow:0 0 0 var(--line);">复制</button>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+
+        <sc-if value="{{ debugOpen }}">
+          <aside style="flex:none; width:400px; min-height:0; overflow:auto; background:var(--chrome); border-left:3px solid var(--line); padding:16px 16px 40px;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+              <span style="font-size:15px; font-weight:900;">调试</span>
+              <div style="flex:1;"></div>
+              <button onClick="{{ clearDebug }}" style="white-space:nowrap; background:var(--surf); border:2px solid var(--line); border-radius:999px; padding:3px 11px; font-size:12px; font-weight:700; cursor:pointer;" style-hover="background:#f0876b;">清空</button>
+              <button onClick="{{ toggleDebug }}" style="white-space:nowrap; background:var(--solid); color:var(--on-solid); border:2px solid var(--line); border-radius:999px; padding:3px 11px; font-size:12px; font-weight:700; cursor:pointer;">收起</button>
+            </div>
+
+            <sc-if value="{{ noDebug }}">
+              <div style="font-size:13px; font-weight:600; opacity:.6; line-height:1.7;">还没有数据。发一句话就会记在这儿：模型原文、每块的语气/音行、实际念出去的字、耗时。</div>
+            </sc-if>
+
+            <sc-for list="{{ debugTurns }}" as="d" hint-placeholder-count="1">
+              <div style="background:var(--surf); border:2.5px solid var(--line); border-radius:14px; box-shadow:3px 3px 0 var(--line); padding:12px 13px; margin-bottom:14px;">
+
+                <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:9px;">
+                  <span style="background:var(--code-bg); color:#ffd84d; border-radius:999px; padding:2px 9px; font-size:11px; font-weight:800;">{{ d.model }}</span>
+                  <span style="{{ d.firstStyle }}">首字 {{ d.firstMs }}</span>
+                  <span style="background:var(--chrome2); border:1.5px solid var(--line); border-radius:999px; padding:2px 9px; font-size:11px; font-weight:700;">全程 {{ d.totalMs }}</span>
+                  <span style="background:var(--chrome2); border:1.5px solid var(--line); border-radius:999px; padding:2px 9px; font-size:11px; font-weight:700;">{{ d.blockCount }} 块 / {{ d.sayCount }} 音行</span>
+                  <span style="background:var(--chrome2); border:1.5px solid var(--line); border-radius:999px; padding:2px 9px; font-size:11px; font-weight:700;">{{ d.chars }} 字</span>
+                </div>
+
+                <div style="font-size:12px; font-weight:800; opacity:.65; margin-bottom:4px;">我问</div>
+                <div style="font-size:13px; font-weight:600; line-height:1.65; margin-bottom:10px;">{{ d.ask }}</div>
+
+                <sc-for list="{{ d.blocks }}" as="b" hint-placeholder-count="1">
+                  <div style="border-top:1.5px dashed rgba(var(--line-rgb), .3); padding-top:8px; margin-bottom:8px;">
+                    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:5px;">
+                      <span style="{{ b.toneStyle }}">目标 {{ b.tone }}</span>
+                      <sc-if value="{{ b.hasActual }}">
+                        <span style="font-size:11px; font-weight:700; opacity:.65;">实际 {{ b.voice }}{{ b.fallbackText }}</span>
+                      </sc-if>
+                      <sc-if value="{{ b.hasSay }}">
+                        <span style="background:#9b6bf0; color:var(--on-solid); border-radius:999px; padding:2px 8px; font-size:11px; font-weight:800;">改了音</span>
+                      </sc-if>
+                    </div>
+                    <sc-if value="{{ b.hasSay }}">
+                      <div style="font-size:12px; font-weight:700; opacity:.6;">音行</div>
+                      <div style="font-family:'JetBrains Mono',ui-monospace,monospace; font-size:12px; line-height:1.6; background:var(--bg); border-radius:8px; padding:6px 8px; margin-bottom:5px; white-space:pre-wrap;">{{ b.say }}</div>
+                    </sc-if>
+                    <div style="font-size:12px; font-weight:700; opacity:.6;">话行（上屏）</div>
+                    <div style="font-size:13px; font-weight:600; line-height:1.65; white-space:pre-wrap;">{{ b.text }}</div>
+                  </div>
+                </sc-for>
+
+                <sc-if value="{{ d.hasClips }}">
+                  <div style="border-top:2px solid var(--line); padding-top:8px;">
+                    <div style="font-size:12px; font-weight:800; opacity:.65; margin-bottom:5px;">实际念出去的（服务端清洗后）</div>
+                    <sc-for list="{{ d.clips }}" as="c" hint-placeholder-count="1">
+                      <div style="display:flex; gap:6px; align-items:baseline; margin-bottom:4px;">
+                        <span style="{{ c.badgeStyle }}">{{ c.voice }}</span>
+                        <span style="flex:1; font-family:'JetBrains Mono',ui-monospace,monospace; font-size:12px; line-height:1.55; white-space:pre-wrap;">{{ c.spoken }}</span>
+                        <span style="font-size:11px; font-weight:700; opacity:.55; white-space:nowrap;">{{ c.ms }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+
+                <details style="margin-top:9px;">
+                  <summary style="font-size:12px; font-weight:800; opacity:.65; cursor:pointer;">模型原文（未解析）</summary>
+                  <div style="font-family:'JetBrains Mono',ui-monospace,monospace; font-size:11.5px; line-height:1.6; background:var(--solid); color:var(--on-solid); border-radius:8px; padding:9px 10px; margin-top:6px; white-space:pre-wrap; word-break:break-all;">{{ d.raw }}</div>
+                </details>
+              </div>
+            </sc-for>
+          </aside>
+        </sc-if>
+        </div>
+
+        <div style="flex:none; padding:18px 30px 24px; background:var(--bg); border-top:2.5px solid var(--line);">
+          <sc-if value="{{ textMode }}" hint-placeholder-val="{{ true }}">
+            <div style="max-width:860px; margin:0 auto; display:flex; gap:10px; align-items:center; background:var(--surf); border:3px solid var(--line); border-radius:999px; padding:7px 7px 7px 10px; box-shadow:5px 5px 0 var(--line);">
+              <sc-if value="{{ voiceOk }}">
+                <button onClick="{{ toggleModeVoice }}" title="切换到语音输入" style="border:0; background:var(--chrome2); color:var(--fg); border-radius:999px; padding:8px 12px; font-size:12px; font-weight:800; cursor:pointer;">语音</button>
+              </sc-if>
+              <input value="{{ input }}" onInput="{{ onInput }}" onKeyDown="{{ onKeyDown }}" disabled="{{ streaming }}" placeholder="回车发送" style="flex:1; border:0; background:transparent; font-size:15px; font-weight:500; padding:10px 12px; color:var(--fg); outline:none; box-shadow:none;">
+              <button onClick="{{ send }}" disabled="{{ sendDisabled }}" title="发送" style="{{ sendButtonStyle }}">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="m5 12 7-7 7 7"></path></svg>
+              </button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ voiceMode }}">
+            <div style="max-width:860px; margin:0 auto; display:flex; gap:18px; align-items:center; background:var(--surf); border:3px solid var(--line); border-radius:999px; padding:10px 22px 10px 10px; box-shadow:5px 5px 0 var(--line);">
+              <button onClick="{{ toggleModeText }}" title="切换到文字输入" style="border:0; background:var(--chrome2); color:var(--fg); border-radius:999px; padding:8px 12px; font-size:12px; font-weight:800; cursor:pointer;">键盘</button>
+              <button onClick="{{ micToggle }}" disabled="{{ micWorking }}" style="{{ micStyle }}">{{ micLabel }}</button>
+              <span style="flex:1; font-size:14px; font-weight:700; line-height:1.6;">{{ micHint }}</span>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- 收藏 -->
+    <sc-if value="{{ isFavorites }}">
+      <div style="overflow:auto; padding:34px 40px 60px;">
+        <div style="max-width:900px; margin:0 auto;">
+          <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+            <h1 style="font-size:34px; font-weight:900; margin:0; letter-spacing:-.02em;">收藏</h1>
+            <span style="background:#ffd84d; border:2.5px solid var(--line); border-radius:999px; padding:5px 14px; font-size:12px; font-weight:700; white-space:nowrap;">{{ favCount }} 条</span>
+            <div style="flex:1;"></div>
+            <button onClick="{{ loadFavorites }}" style="white-space:nowrap; background:var(--surf); border:3px solid var(--line); border-radius:999px; padding:11px 24px; font-size:15px; font-weight:900; cursor:pointer; box-shadow:5px 5px 0 var(--line);" style-hover="transform:translate(-2px,-2px); box-shadow:7px 7px 0 var(--line);" style-active="transform:translate(2px,2px); box-shadow:0 0 0 var(--line);">刷新</button>
+          </div>
+          <div style="height:3px; background:var(--solid); margin:20px 0 26px;"></div>
+          <sc-if value="{{ noFavorites }}">
+            <div style="background:var(--surf); border:3px solid var(--line); border-radius:18px; box-shadow:6px 6px 0 var(--line); padding:22px 26px; font-size:16px; font-weight:700; line-height:1.7;">还没有收藏。聊天里点「★ 收藏」，音频和原文会存下来，随时再听。</div>
+          </sc-if>
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <sc-for list="{{ favorites }}" as="f" hint-placeholder-count="2">
+              <div style="background:var(--surf); border:3px solid var(--line); border-radius:18px; box-shadow:5px 5px 0 var(--line); padding:18px 22px; display:flex; flex-direction:column; gap:12px;">
+                <div style="font-size:15px; font-weight:500; line-height:1.85; white-space:pre-wrap;">{{ f.text }}</div>
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                  <span style="font-size:12px; font-weight:700; opacity:.55;">{{ f.created }}{{ f.voiceLabel }}</span>
+                  <div style="flex:1;"></div>
+                  <button onClick="{{ f.onPlay }}" style="white-space:nowrap; background:#35b39a; color:#1a1a18; border:2.5px solid var(--line); border-radius:999px; padding:6px 16px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:3px 3px 0 var(--line);" style-hover="transform:translate(-2px,-2px); box-shadow:5px 5px 0 var(--line);" style-active="transform:translate(2px,2px); box-shadow:0 0 0 var(--line);">▶ 听</button>
+                  <button onClick="{{ f.onDelete }}" style="white-space:nowrap; background:var(--surf); border:2.5px solid var(--line); border-radius:999px; padding:6px 16px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:3px 3px 0 var(--line);" style-hover="background:#f0876b; transform:translate(-2px,-2px); box-shadow:5px 5px 0 var(--line);" style-active="transform:translate(2px,2px); box-shadow:0 0 0 var(--line);">删除</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- 它眼里的我 -->
+    <sc-if value="{{ isContext }}">
+      <div style="overflow:auto; padding:34px 40px 60px;">
+        <div style="max-width:900px; margin:0 auto;">
+          <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+            <h1 style="font-size:34px; font-weight:900; margin:0; letter-spacing:-.02em;">它眼里的我</h1>
+            <span style="background:#9b6bf0; color:var(--on-solid); border:2.5px solid var(--line); border-radius:999px; padding:5px 14px; font-size:12px; font-weight:700; white-space:nowrap;">只读</span>
+            <div style="flex:1;"></div>
+            <button onClick="{{ loadContext }}" style="white-space:nowrap; background:#ffd84d; border:3px solid var(--line); border-radius:999px; padding:11px 24px; font-size:15px; font-weight:900; cursor:pointer; box-shadow:5px 5px 0 var(--line);" style-hover="transform:translate(-2px,-2px); box-shadow:7px 7px 0 var(--line);" style-active="transform:translate(2px,2px); box-shadow:0 0 0 var(--line);">重新组装并查看</button>
+          </div>
+          <div style="height:3px; background:var(--solid); margin:20px 0 26px;"></div>
+
+          <sc-if value="{{ hasContext }}">
+            <div>
+              <div style="background:var(--surf); border:3px solid var(--line); border-radius:18px; box-shadow:6px 6px 0 var(--line); overflow:hidden;">
+                <sc-for list="{{ contextParts }}" as="p" hint-placeholder-count="3">
+                  <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:13px 20px; border-bottom:2px solid rgba(var(--line-rgb), .14); font-size:14px;">
+                    <span style="font-family:'JetBrains Mono',ui-monospace,monospace; font-weight:700;">{{ p.name }}</span>
+                    <span style="opacity:.6;">{{ p.chars }} 字</span>
+                    <sc-if value="{{ p.isCorrections }}">
+                      <span style="background:#f0876b; border:2.5px solid var(--line); border-radius:999px; padding:3px 12px; font-size:12px; font-weight:700; white-space:nowrap;">← 最高优先级，压轴生效</span>
+                    </sc-if>
+                  </div>
+                </sc-for>
+                <div style="padding:14px 20px; font-size:15px; font-weight:900; background:var(--chrome2);">总字数 {{ contextTotal }}</div>
+              </div>
+
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; margin:30px 0 12px;">
+                <h2 style="font-size:20px; font-weight:900; margin:0; white-space:nowrap; flex:none;">完整 system prompt</h2>
+                <button onClick="{{ copySystem }}" style="white-space:nowrap; background:var(--surf); border:2.5px solid var(--line); border-radius:999px; padding:8px 18px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:4px 4px 0 var(--line);" style-hover="background:#ffd84d; transform:translate(-2px,-2px); box-shadow:6px 6px 0 var(--line);" style-active="transform:translate(2px,2px); box-shadow:0 0 0 var(--line);">复制全文</button>
+              </div>
+              <pre style="max-height:460px; overflow:auto; background:var(--solid); color:var(--on-solid); border:3px solid var(--line); border-radius:18px; box-shadow:6px 6px 0 #35b39a; padding:22px; font-family:'JetBrains Mono',ui-monospace,monospace; font-size:13px; line-height:1.85; white-space:pre-wrap; margin:0;">{{ contextSystem }}</pre>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- 回答问题 -->
+    <sc-if value="{{ isQuestions }}">
+      <div style="overflow:auto; padding:34px 40px 60px;">
+        <div style="max-width:900px; margin:0 auto;">
+          <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+            <h1 style="font-size:34px; font-weight:900; margin:0; letter-spacing:-.02em;">回答问题</h1>
+            <div style="flex:1;"></div>
+            <span style="background:#ffd84d; border:2.5px solid var(--line); border-radius:999px; padding:6px 16px; font-size:13px; font-weight:700; white-space:nowrap; box-shadow:3px 3px 0 var(--line);">普通题 {{ normalDone }}/{{ normalTotal }}</span>
+            <span style="background:#9b6bf0; color:var(--on-solid); border:2.5px solid var(--line); border-radius:999px; padding:6px 16px; font-size:13px; font-weight:700; white-space:nowrap; box-shadow:3px 3px 0 var(--line);">留出题 {{ holdoutDone }}/{{ holdoutTotal }}</span>
+          </div>
+          <div style="height:3px; background:var(--solid); margin:20px 0 28px;"></div>
+
+          <div style="display:flex; flex-direction:column; gap:34px;">
+            <sc-for list="{{ groups }}" as="g" hint-placeholder-count="2">
+              <div>
+                <h2 style="font-size:19px; font-weight:900; margin:0 0 14px;">{{ g.title }}</h2>
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                  <sc-for list="{{ g.questions }}" as="q" hint-placeholder-count="3">
+                    <div style="{{ q.cardStyle }}">
+                      <button onClick="{{ q.onToggle }}" style="width:100%; text-align:left; background:transparent; border:0; padding:16px 18px; display:flex; gap:14px; align-items:flex-start; cursor:pointer; font:inherit; color:inherit;">
+                        <span style="font-family:'JetBrains Mono',ui-monospace,monospace; font-weight:700; background:var(--code-bg); color:#ffd84d; border-radius:8px; padding:2px 8px; font-size:13px;">{{ q.id }}</span>
+                        <span style="flex:1; line-height:1.7; font-weight:500;">{{ q.text }}</span>
+                        <sc-if value="{{ q.isHoldout }}">
+                          <span style="background:#9b6bf0; color:var(--on-solid); border:2px solid var(--line); border-radius:999px; padding:2px 11px; font-size:12px; font-weight:700; white-space:nowrap;">留出</span>
+                        </sc-if>
+                        <span style="{{ q.stateStyle }}">{{ q.stateLabel }}</span>
+                      </button>
+
+                      <sc-if value="{{ q.open }}">
+                        <div style="padding:0 18px 18px; border-top:2.5px solid var(--line);">
+                          <div style="background:#ffd84d; border:2.5px solid var(--line); border-radius:12px; padding:12px 16px; margin:16px 0; font-size:13px; line-height:1.9; font-weight:700;">
+                            1. 必须有具体事件。2. 不许用形容词概括自己。3. 不许美化。4. 想不出来就写“没有”。
+                          </div>
+                          <textarea value="{{ answerDraft }}" onInput="{{ onAnswerInput }}" style="width:100%; min-height:170px; resize:vertical; background:var(--surf2); border:2.5px solid var(--line); border-radius:14px; padding:14px 16px; font-size:15px; font-weight:500; line-height:1.85; color:var(--fg);"></textarea>
+                          <div style="display:flex; gap:10px; align-items:center; margin-top:14px;">
+                            <button onClick="{{ q.onSave }}" style="white-space:nowrap; background:#35b39a; border:2.5px solid var(--line); border-radius:999px; padding:9px 22px; font-size:14px; font-weight:900; cursor:pointer; box-shadow:4px 4px 0 var(--line);" style-hover="transform:translate(-2px,-2px); box-shadow:6px 6px 0 var(--line);" style-active="transform:translate(2px,2px); box-shadow:0 0 0 var(--line);">保存</button>
+                            <button onClick="{{ q.onToggle }}" style="white-space:nowrap; background:transparent; border:2.5px solid var(--line); border-radius:999px; padding:9px 18px; font-size:14px; font-weight:700; cursor:pointer;" style-hover="background:var(--chrome2);">收起</button>
+                          </div>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- 我的素材 -->
+    <sc-if value="{{ isMaterials }}">
+      <div style="overflow:auto; padding:34px 40px 60px;">
+        <div style="max-width:900px; margin:0 auto; display:flex; flex-direction:column; gap:28px;">
+          <div>
+            <h1 style="font-size:34px; font-weight:900; margin:0; letter-spacing:-.02em;">我的素材</h1>
+            <div style="height:3px; background:var(--solid); margin:20px 0 0;"></div>
+          </div>
+
+          <div style="background:#ffd84d; border:3px solid var(--line); border-radius:20px; box-shadow:6px 6px 0 var(--line); padding:26px;">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+              <span style="font-size:19px; font-weight:900;">说话，转成文字</span>
+              <sc-if value="{{ voiceRefSet }}">
+                <span style="background:#9b6bf0; color:var(--on-solid); border:2px solid var(--line); border-radius:999px; padding:3px 12px; font-size:12px; font-weight:700; white-space:nowrap;">✓ 已有声音参考</span>
+              </sc-if>
+            </div>
+            <div style="display:flex; align-items:center; gap:22px; flex-wrap:wrap;">
+              <button onClick="{{ toggleRecord }}" style="{{ recButtonStyle }}">{{ recButtonLabel }}</button>
+              <div style="display:flex; flex-direction:column; gap:6px; flex:1; min-width:240px;">
+                <span style="font-family:'JetBrains Mono',ui-monospace,monospace; font-size:30px; font-weight:700; letter-spacing:.04em;">{{ recTime }}</span>
+                <span style="font-size:13px; font-weight:700; line-height:1.6; opacity:.75;">{{ recHint }}</span>
+              </div>
+              <sc-if value="{{ canTranscribe }}">
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                  <button onClick="{{ transcribe }}" disabled="{{ transcribing }}" style="white-space:nowrap; background:var(--solid); color:var(--on-solid); border:2.5px solid var(--line); border-radius:999px; padding:11px 22px; font-size:14px; font-weight:900; cursor:pointer; box-shadow:4px 4px 0 var(--surf);" style-hover="transform:translate(-2px,-2px); box-shadow:6px 6px 0 var(--surf);" style-active="transform:translate(2px,2px); box-shadow:0 0 0 var(--surf);">转成文字</button>
+                  <sc-if value="{{ canSetVoice }}">
+                    <div style="display:flex; gap:8px; align-items:center;">
+                      <input value="{{ refName }}" onInput="{{ onRefName }}" title="音色名字（可存多个，聊天时切换）" style="width:92px; background:var(--surf2); border:2.5px solid var(--line); border-radius:999px; padding:10px 14px; font-size:13px; font-weight:700; color:var(--fg);">
+                      <button onClick="{{ setVoice }}" disabled="{{ settingRef }}" style="white-space:nowrap; background:#9b6bf0; color:var(--on-solid); border:2.5px solid var(--line); border-radius:999px; padding:11px 22px; font-size:14px; font-weight:900; cursor:pointer; box-shadow:4px 4px 0 var(--surf);" style-hover="transform:translate(-2px,-2px); box-shadow:6px 6px 0 var(--surf);" style-active="transform:translate(2px,2px); box-shadow:0 0 0 var(--surf);">{{ setVoiceLabel }}</button>
+                    </div>
+                  </sc-if>
+                  <button onClick="{{ discardRecording }}" style="white-space:nowrap; background:transparent; border:2.5px solid var(--line); border-radius:999px; padding:11px 20px; font-size:14px; font-weight:700; cursor:pointer;" style-hover="background:rgba(var(--line-rgb), .1);">丢弃</button>
+                </div>
+              </sc-if>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-top:22px; padding-top:18px; border-top:2.5px solid var(--line);">
+              <span style="font-size:13px; font-weight:700; white-space:nowrap;">批量转写走命令行</span>
+              <code style="flex:1; min-width:200px; font-family:'JetBrains Mono',ui-monospace,monospace; font-size:13px; background:var(--code-bg); color:#ffd84d; padding:9px 14px; border-radius:10px;">python3 转写.py 录音/我</code>
+              <button onClick="{{ copyTranscribeCmd }}" style="white-space:nowrap; background:var(--surf); border:2.5px solid var(--line); border-radius:999px; padding:6px 15px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:3px 3px 0 var(--line);" style-hover="transform:translate(-2px,-2px); box-shadow:5px 5px 0 var(--line);" style-active="transform:translate(2px,2px); box-shadow:0 0 0 var(--line);">复制</button>
+            </div>
+          </div>
+
+          <div style="background:var(--surf); border:3px solid var(--line); border-radius:20px; box-shadow:6px 6px 0 var(--line); padding:26px;">
+            <div style="font-size:19px; font-weight:900;">存成一份素材</div>
+            <label style="display:block; font-size:13px; font-weight:700; margin:18px 0 7px;">文件名</label>
+            <input value="{{ pasteName }}" onInput="{{ onPasteName }}" style="width:100%; background:var(--surf2); border:2.5px solid var(--line); border-radius:999px; padding:11px 18px; font-size:14px; font-weight:700; font-family:'JetBrains Mono',ui-monospace,monospace; color:var(--fg);">
+            <label style="display:block; font-size:13px; font-weight:700; margin:16px 0 7px;">正文</label>
+            <textarea value="{{ pasteContent }}" onInput="{{ onPasteContent }}" style="width:100%; min-height:200px; resize:vertical; background:var(--surf2); border:2.5px solid var(--line); border-radius:14px; padding:14px 16px; font-size:15px; font-weight:500; line-height:1.85; color:var(--fg);"></textarea>
+            <sc-if value="{{ materialError }}">
+              <div style="margin-top:14px; background:#f0876b; border:2.5px solid var(--line); border-radius:12px; padding:10px 16px; font-size:14px; font-weight:700;">{{ materialError }}</div>
+            </sc-if>
+            <button onClick="{{ saveMaterial }}" disabled="{{ pasteDisabled }}" style="{{ saveMaterialStyle }}" style-hover="transform:translate(-2px,-2px); box-shadow:6px 6px 0 var(--line);" style-active="transform:translate(2px,2px); box-shadow:0 0 0 var(--line);">保存</button>
+          </div>
+
+          <div>
+            <div style="font-size:19px; font-weight:900; margin-bottom:16px;">已经有的 {{ materialCount }} 份</div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:14px;">
+              <sc-for list="{{ materials }}" as="f" hint-placeholder-count="3">
+                <button onClick="{{ f.onView }}" style="text-align:left; background:var(--surf); border:3px solid var(--line); border-radius:16px; box-shadow:5px 5px 0 var(--line); padding:16px; cursor:pointer; font:inherit; color:var(--fg); display:flex; flex-direction:column; gap:8px;" style-hover="background:#ffd84d; transform:translate(-3px,-3px); box-shadow:8px 8px 0 var(--line);" style-active="transform:translate(2px,2px); box-shadow:0 0 0 var(--line);">
+                  <span style="display:flex; justify-content:space-between; gap:10px; font-size:14px; align-items:center;">
+                    <strong style="font-family:'JetBrains Mono',ui-monospace,monospace;">{{ f.name }}</strong>
+                    <span style="white-space:nowrap; font-size:12px; font-weight:700; background:var(--chrome2); border:2px solid var(--line); border-radius:999px; padding:1px 9px;">{{ f.chars }} 字</span>
+                  </span>
+                  <span style="font-size:13px; opacity:.7; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ f.preview }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+
+          <sc-if value="{{ viewingMaterial }}">
+            <div>
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:12px;">
+                <h2 style="font-size:19px; font-weight:900; margin:0; font-family:'JetBrains Mono',ui-monospace,monospace; white-space:nowrap; flex:none;">{{ viewingName }}</h2>
+                <button onClick="{{ closeMaterial }}" style="white-space:nowrap; background:var(--surf); border:2.5px solid var(--line); border-radius:999px; padding:7px 18px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:3px 3px 0 var(--line);" style-hover="background:#f0876b;" style-active="transform:translate(2px,2px); box-shadow:0 0 0 var(--line);">关闭</button>
+              </div>
+              <pre style="max-height:340px; overflow:auto; background:var(--solid); color:var(--on-solid); border:3px solid var(--line); border-radius:18px; box-shadow:6px 6px 0 #9b6bf0; padding:22px; font-family:'JetBrains Mono',ui-monospace,monospace; font-size:13px; line-height:1.85; white-space:pre-wrap; margin:0;">{{ viewingContent }}</pre>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+  </main>
+
+  <sc-if value="{{ correctionOpen }}">
+    <div style="position:fixed; inset:0; background:rgba(var(--line-rgb), .45); display:flex; align-items:center; justify-content:center; padding:24px; z-index:40;">
+      <div style="max-width:580px; width:100%; background:var(--surf); border:3px solid var(--line); border-radius:22px; box-shadow:9px 9px 0 var(--line); padding:26px;">
+        <div style="font-size:24px; font-weight:900;">不像我</div>
+        <label style="display:block; font-size:13px; font-weight:700; margin:20px 0 7px; line-height:1.6;">它哪里不对？（具体一点，比如“它说我会为了稳定放弃机会”）</label>
+        <textarea value="{{ wrong }}" onInput="{{ onWrong }}" style="width:100%; min-height:88px; resize:vertical; background:var(--surf2); border:2.5px solid var(--line); border-radius:14px; padding:12px 14px; font-size:14px; font-weight:500; line-height:1.75; color:var(--fg);"></textarea>
+        <label style="display:block; font-size:13px; font-weight:700; margin:16px 0 7px; line-height:1.6;">应该是什么？（必填。只说“不像”没法执行，下次它还是那样）</label>
+        <textarea value="{{ right }}" onInput="{{ onRight }}" style="width:100%; min-height:88px; resize:vertical; background:var(--surf2); border:2.5px solid var(--line); border-radius:14px; padding:12px 14px; font-size:14px; font-weight:500; line-height:1.75; color:var(--fg);"></textarea>
+        <sc-if value="{{ correctionError }}">
+          <div style="margin-top:14px; background:#f0876b; border:2.5px solid var(--line); border-radius:12px; padding:10px 16px; font-size:14px; font-weight:700;">{{ correctionError }}</div>
+        </sc-if>
+        <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:20px;">
+          <button onClick="{{ closeCorrection }}" style="white-space:nowrap; background:transparent; border:2.5px solid var(--line); border-radius:999px; padding:10px 20px; font-size:14px; font-weight:700; cursor:pointer;" style-hover="background:var(--chrome2);">取消</button>
+          <button onClick="{{ submitCorrection }}" disabled="{{ correctionDisabled }}" style="{{ submitStyle }}" style-hover="transform:translate(-2px,-2px); box-shadow:6px 6px 0 var(--line);" style-active="transform:translate(2px,2px); box-shadow:0 0 0 var(--line);">提交</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toast }}">
+    <div style="position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#35b39a; color:#1a1a18; border:3px solid var(--line); box-shadow:5px 5px 0 var(--line); padding:12px 24px; border-radius:999px; font-size:14px; font-weight:900; z-index:50;">{{ toast }}</div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;apiBase&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;后端&quot;},&quot;forceDemo&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;后端&quot;},&quot;typingSpeed&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:22,&quot;min&quot;:5,&quot;max&quot;:80,&quot;step&quot;:1,&quot;unit&quot;:&quot;ms&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;演示模式&quot;}}">
+// 协议里认可的语气标签（缺音源的由语音服务按别名回退，不会掉回本人声音）
+const TONE_TAGS = ["唠嗑", "正事", "夜话"];
+
+// 两套配色。鲜色（黄橙绿紫红）两个主题都不变——波普感靠它们撑着，
+// 变的只有「底/面/墨」三层：白天是浅底深墨，黑夜是深底浅墨。
+const THEMES = {
+  day: {
+    "--bg": "#eae0d5", "--surf": "#f2ede4", "--surf2": "#f7f3ec",
+    "--chrome": "#e7e1d6", "--chrome2": "#e3ded4", "--muted": "#c9c2b6",
+    "--fg": "#1a1a18", "--line": "#1a1a18", "--line-rgb": "26,26,24",
+    "--solid": "#1a1a18", "--on-solid": "#f5f0e6",
+    "--code-bg": "#1a1a18", "--dots": "#1a1a18", "--dots-op": "1"
+  },
+  night: {
+    "--bg": "#15141a", "--surf": "#231f2b", "--surf2": "#2b2634",
+    "--chrome": "#1c1a22", "--chrome2": "#312b3b", "--muted": "#4a4553",
+    "--fg": "#efe9dd", "--line": "#efe9dd", "--line-rgb": "239,233,221",
+    "--solid": "#efe9dd", "--on-solid": "#15141a",
+    "--code-bg": "#0d0c11", "--dots": "#3a3444", "--dots-op": "1"
+  }
+};
+
+const DEMO = {
+  status: { answers: 1, corrections: 0, holdout: 0, system_chars: 0, ollama_ok: true, models: ["gpt-4.1-mini"] },
+  context: {
+    system: "你在扮演「我」。以下材料全部来自我本人的书写，不要总结，不要升华。\n\n【letter.md】\n2019 年冬天我给自己写过一封信，说如果三年后还在同一间办公室，就算失败。三年后我还在。\n\n【01.md】\n我妈住院那次，我在走廊里给客户改方案改到凌晨两点。第二天医生问我昨晚睡了几个小时，我说四个，其实是零个。\n\n【02.md】\n我拒绝过一次调岗。原因不是不喜欢新岗位，是我不想跟提这件事的人共事。\n\n【corrections.md】\n- 错：它说我会为了稳定放弃机会。对：我 2021 年辞过一次职，没有下家，存款够撑五个月。\n- 错：它说我喜欢团队合作。对：我大部分好活儿是一个人熬出来的，协作对我是成本。\n",
+    parts: [
+      { name: "letter.md", chars: 800 },
+      { name: "01.md", chars: 350 },
+      { name: "02.md", chars: 420 },
+      { name: "answers.md", chars: 2650 },
+      { name: "corrections.md", chars: 301 }
+    ],
+    total_chars: 4521
+  },
+  questions: {
+    groups: [
+      {
+        title: "一、代价（你为某件事真正付出过什么）",
+        questions: [
+          { id: "01", text: "最近一次你为了某件事放弃了确定的好处，具体是什么事、放弃了什么？", holdout: false, answered: true },
+          { id: "02", text: "有没有一次你明知道会得罪人还是做了？当时发生了什么？", holdout: false, answered: false },
+          { id: "03", text: "写一次你事后觉得自己做错了但当时没改的事。", holdout: true, answered: false }
+        ]
+      },
+      {
+        title: "二、边界（你在什么情况下会拒绝）",
+        questions: [
+          { id: "04", text: "上一次你说“不”，对方是谁，你说了什么原话？", holdout: false, answered: true },
+          { id: "05", text: "有没有你答应了但心里一直不认的事？后来怎么处理的？", holdout: false, answered: false }
+        ]
+      }
+    ]
+  },
+  answers: {
+    "01": "2021 年 3 月，我辞了工作，没有下家。存款够撑五个月。原因是那年一月我做的方案被拿去改了名字上会，我没吵，回工位把电脑关了，那天下午在楼下坐了两个小时。",
+    "04": "去年十一月，组长让我接一个跨部门的活儿。我说“这个我不接，我手上的两件事你要我停哪一件？”他没回答，事就没了。"
+  },
+  materials: [
+    { name: "01.md", chars: 350, preview: "我妈住院那次，我在走廊里给客户改方案改到凌晨两点。" },
+    { name: "02.md", chars: 420, preview: "我拒绝过一次调岗。原因不是不喜欢新岗位。" },
+    { name: "letter.md", chars: 800, preview: "2019 年冬天我给自己写过一封信。" }
+  ],
+  materialContent: {
+    "01.md": "我妈住院那次，我在走廊里给客户改方案改到凌晨两点。第二天医生问我昨晚睡了几个小时，我说四个，其实是零个。\n\n那周我一共去了医院六次，每次都带着电脑。",
+    "02.md": "我拒绝过一次调岗。原因不是不喜欢新岗位，是我不想跟提这件事的人共事。\n\n我没有说真实原因，我说的是“手上的项目走不开”。",
+    "letter.md": "2019 年冬天我给自己写过一封信，说如果三年后还在同一间办公室，就算失败。三年后我还在。"
+  },
+  transcript: "上周三那天下午，我把辞职信写好了但没发出去。写完之后我去楼下走了两圈，回来把文档关了。不是害怕，是我想不出来发完之后第二天要干什么。",
+  reply: "语气：唠嗑\n话：我在。这个公开页面现在只是 Demo，能聊天，其他东西还在慢慢搭。"
+};
+
+class Component extends DCLogic {
+  state = {
+    page: "chat", demo: false, ready: false,
+    status: { answers: 0, corrections: 0, holdout: 0, system_chars: 0, ollama_ok: false, models: [] },
+    model: "", messages: [], input: "", streaming: false, waiting: false, chatError: false,
+    correctionOpen: false, wrong: "", right: "", correctionError: "", toast: "",
+    context: null,
+    groups: [], openQ: null, answerDraft: "", hiddenHoldout: {},
+    materials: [], viewingName: "", viewingContent: "",
+    pasteName: "", pasteContent: "", materialError: "",
+    recState: "idle", recSeconds: 0, transcribing: false, recError: "",
+    voiceOk: false, voiceRefSet: false, voiceMode: false,
+    voices: [], curVoice: "", refName: "默认",
+    micState: "idle", micError: "", micPartial: "", speaking: false, settingRef: false,
+    favorites: [], favBusyId: "",
+    debugOpen: false, debugTurns: [],
+    theme: "day", settingsOpen: false
+  };
+
+  // 会话内音频缓存：msgId -> { clips: Blob[], voice }
+  _msgAudio = {};
+  _replyClips = [];
+  _replySegments = [];
+  _replyMsgId = "";
+  _histKey = "ohmylover_demo_chat_v1";
+
+  get api() {
+    return this.props.apiBase
+      || ((location.protocol === "http:" || location.protocol === "https:") ? location.origin : "http://127.0.0.1:8000");
+  }
+
+  componentDidMount() {
+    this.setState({ pasteName: "转写_" + this.today() + ".md" });
+    this.initTheme();
+    this.loadChatHistory();
+    this.boot();
+    // 语音服务可能晚开/重启，定期重探，入口自动出现/恢复
+    this._voiceIv = setInterval(() => {
+      if (!this.state.demo && this.state.status.voice_configured) this.checkVoice();
+    }, 15000);
+  }
+
+  loadChatHistory() {
+    try {
+      const raw = localStorage.getItem(this._histKey);
+      if (!raw) return;
+      const messages = JSON.parse(raw);
+      if (!Array.isArray(messages) || !messages.length) return;
+      this.setState({
+        messages: messages.map(m => ({
+          role: m.role === "user" ? "user" : "assistant",
+          content: String(m.content || ""),
+          id: m.id || ("m" + Math.random().toString(36).slice(2, 10)),
+          voice: m.voice || "",
+          createdAt: Number(m.createdAt) || 0,
+          voiceSegments: Array.isArray(m.voiceSegments)
+            ? m.voiceSegments.map(x => ({
+                text: String((x && x.text) || ""),
+                tone: String((x && x.tone) || ""),
+                voice: String((x && x.voice) || "")
+              })).filter(x => x.text && x.voice)
+            : []
+        })).filter(m => m.content)
+      });
+      this.scrollChatToBottom();
+    } catch (e) {}
+  }
+
+  saveChatHistory() {
+    try {
+      const slim = (this.state.messages || [])
+        .filter(m => m && m.content)
+        .map(m => ({
+          role: m.role, content: m.content, id: m.id, voice: m.voice || "",
+          createdAt: Number(m.createdAt) || 0,
+          voiceSegments: Array.isArray(m.voiceSegments) ? m.voiceSegments : []
+        }));
+      localStorage.setItem(this._histKey, JSON.stringify(slim));
+    } catch (e) {}
+  }
+
+  clearChat = () => {
+    if (!this.state.messages.length) return;
+    if (!window.confirm("清空本机聊天记录？收藏不受影响。")) return;
+    this.resetSpeech();
+    this._msgAudio = {};
+    this._replyClips = [];
+    this._replySegments = [];
+    this._replyMsgId = "";
+    try { localStorage.removeItem(this._histKey); } catch (e) {}
+    this.setState({ messages: [], chatError: false });
+    this.toast("已清空");
+  };
+
+  today() {
+    const d = new Date(), p = n => String(n).padStart(2, "0");
+    return "" + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate());
+  }
+
+  dayKey(ts) {
+    if (!ts) return "";
+    const d = new Date(ts);
+    return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+  }
+
+  dateLabel(ts) {
+    if (!ts) return "";
+    const d = new Date(ts), now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const day = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    if (day === today) return "今天";
+    if (day === today - 86400000) return "昨天";
+    return (d.getFullYear() !== now.getFullYear() ? d.getFullYear() + "年" : "")
+      + (d.getMonth() + 1) + "月" + d.getDate() + "日";
+  }
+
+  timeLabel(ts) {
+    if (!ts) return "";
+    const d = new Date(ts), p = n => String(n).padStart(2, "0");
+    return p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+
+  async boot() {
+    if (this.props.forceDemo) return this.enterDemo();
+    try {
+      const r = await fetch(this.api + "/api/status");
+      if (!r.ok) throw new Error();
+      const s = await r.json();
+      this.setState({ demo: false, ready: true, status: s, model: this.pickModel(s.models || []) });
+      this.loadQuestions();
+      this.loadMaterials();
+      this.loadFavorites();
+      if (s.voice_configured) this.checkVoice();
+    } catch (e) { this.enterDemo(); }
+  }
+
+  enterDemo() {
+    const s = DEMO.status;
+    this.setState({
+      demo: true, ready: true, status: s, model: this.pickModel(s.models),
+      groups: DEMO.questions.groups.map(g => ({ ...g, questions: g.questions.map(q => ({ ...q })) })),
+      materials: DEMO.materials.slice()
+    });
+  }
+
+  pickModel(models) {
+    if (!models || !models.length) return "";
+    // Prefer the configured GPT provider model, then fall back to the first option.
+    return models.find(m => /^gpt-5\.4$/i.test(m))
+      || models.find(m => /^gpt-/i.test(m))
+      || models[0]
+      || "";
+  }
+
+  async refreshStatus() {
+    if (this.state.demo) return;
+    try {
+      const r = await fetch(this.api + "/api/status");
+      if (r.ok) this.setState({ status: await r.json() });
+    } catch (e) {}
+  }
+
+  toast(t) {
+    this.setState({ toast: t });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.setState({ toast: "" }), 2600);
+  }
+
+  scrollChatToBottom = () => {
+    // 等 DOM 把新气泡渲完再滚，否则 scrollHeight 还是旧的
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const el = document.getElementById("chat-scroll");
+        if (el) el.scrollTop = el.scrollHeight;
+      });
+    });
+  };
+
+  copy(text) {
+    if (navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {});
+  }
+
+  // ---- 语音（voice_service.py，经主后端 /api/voice/* 代理） ----
+
+  checkVoice = async () => {
+    try {
+      const r = await fetch(this.api + "/api/voice/status");
+      if (!r.ok) throw new Error();
+      const d = await r.json();
+      const voices = d.voices || [];
+      this.setState(s => ({
+        voiceOk: true, voiceRefSet: !!d.ref_set, voices,
+        curVoice: voices.includes(s.curVoice) ? s.curVoice : (voices[0] || "")
+      }));
+    } catch (e) { this.setState({ voiceOk: false }); }
+  };
+
+  sttBlob = async (blob, save) => {
+    const fd = new FormData();
+    fd.append("file", blob, "mic.webm");
+    if (save) fd.append("save", "1");   // 素材录音：服务端把原始音频存进 data/录音/
+    const r = await fetch(this.api + "/api/voice/transcribe", { method: "POST", body: fd });
+    if (!r.ok) {
+      let m = "转写失败。语音服务开了吗？";
+      try { m = (await r.json()).detail || m; } catch (e) {}
+      throw new Error(m);
+    }
+    return (await r.json()).text;
+  };
+
+  cleanSpeakText(text) {
+    return (text || "")
+      .replace(/<[^>\n]*>\s*$/g, "")
+      .replace(/[（(]\s*(材料|用了|文件|来源)[:：][^）)]*[）)]\s*$/g, "")
+      .replace(/\n+(材料|用了|文件|来源)[:：][^\n]*\s*$/g, "")
+      .replace(/\n+-{3,}\s*$/g, "")
+      .replace(/[（(]\s*(材料|用了|文件|来源)[:：][^）)]*[）)]\s*$/g, "")
+      .trim();
+  }
+
+  async concatWavBlobs(blobs) {
+    if (!blobs || !blobs.length) return null;
+    if (blobs.length === 1) return blobs[0];
+    const bufs = await Promise.all(blobs.map(b => b.arrayBuffer()));
+    let total = 0;
+    const datas = [];
+    for (const ab of bufs) {
+      if (ab.byteLength <= 44) continue;
+      const u = new Uint8Array(ab, 44);
+      datas.push(u);
+      total += u.length;
+    }
+    if (!datas.length) return blobs[0];
+    const out = new ArrayBuffer(44 + total);
+    const ou = new Uint8Array(out);
+    ou.set(new Uint8Array(bufs[0], 0, 44), 0);
+    let off = 44;
+    for (const d of datas) { ou.set(d, off); off += d.length; }
+    const dv = new DataView(out);
+    dv.setUint32(4, 36 + total, true);
+    dv.setUint32(40, total, true);
+    return new Blob([out], { type: "audio/wav" });
+  }
+
+  blobToB64(blob) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => {
+        const s = String(r.result || "");
+        const i = s.indexOf(",");
+        resolve(i >= 0 ? s.slice(i + 1) : s);
+      };
+      r.onerror = reject;
+      r.readAsDataURL(blob);
+    });
+  }
+
+  playClips = async (clips) => {
+    if (!clips || !clips.length) return;
+    this._speakSeq = (this._speakSeq || 0) + 1;
+    const seq = this._speakSeq;
+    if (this._audio) { try { this._audio.pause(); } catch (e) {} this._audio = null; }
+    this.setState({ speaking: true });
+    try {
+      for (const blob of clips) {
+        if (seq !== this._speakSeq) return;
+        await new Promise(done => {
+          const a = new Audio(URL.createObjectURL(blob));
+          this._audio = a;
+          a.onended = done; a.onerror = done;
+          a.play().catch(done);
+        });
+      }
+    } finally {
+      if (seq === this._speakSeq) this.setState({ speaking: false });
+    }
+  };
+
+  fetchTtsBlob = async (text, voice) => {
+    const r = await fetch(this.api + "/api/voice/tts", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, voice })
+    });
+    if (!r.ok) {
+      let m = "语音生成失败";
+      try { m = (await r.json()).detail || m; } catch (e) {}
+      throw new Error(m);
+    }
+    return r.blob();
+  };
+
+  ensureMsgAudio = async (msg) => {
+    const id = msg && msg.id;
+    const cached = id && this._msgAudio[id];
+    if (cached && cached.clips && cached.clips.length) return cached;
+    const saved = Array.isArray(msg.voiceSegments)
+      ? msg.voiceSegments.filter(x => x && x.text && x.voice) : [];
+    if (saved.length) {
+      const available = this.state.voices || [];
+      const clips = await Promise.all(saved.map(seg => {
+        const voice = available.includes(seg.voice) ? seg.voice : this.state.curVoice;
+        return this.fetchTtsBlob(seg.text, voice);
+      }));
+      const used = [...new Set(saved.map(x => x.voice).filter(Boolean))];
+      const entry = {
+        clips,
+        voice: used.length > 1 ? "多音色" : (used[0] || this.state.curVoice)
+      };
+      if (id) this._msgAudio[id] = entry;
+      return entry;
+    }
+    const text = this.cleanSpeakText(msg.content);
+    if (!text) throw new Error("没有可朗读的内容");
+    const voice = (msg.voice && (this.state.voices || []).includes(msg.voice))
+      ? msg.voice : this.state.curVoice;
+    const blob = await this.fetchTtsBlob(text, voice);
+    const entry = { clips: [blob], voice };
+    if (id) this._msgAudio[id] = entry;
+    return entry;
+  };
+
+  speakMsg = async (msg) => {
+    if (!msg || !msg.content || this.state.demo || !this.state.voiceOk) return;
+    try {
+      const entry = await this.ensureMsgAudio(msg);
+      await this.playClips(entry.clips);
+    } catch (e) {
+      this.setState({ speaking: false });
+      this.toast(e && e.message ? e.message : "语音生成失败");
+    }
+  };
+
+  // 兼容旧调用
+  speak = async (text) => this.speakMsg({ content: text, voice: this.state.curVoice });
+
+  // ---- 流式朗读：文字每凑齐一句就送 TTS，音频按序排队播，合成与播放并行 ----
+
+  resetSpeech = () => {
+    this._speakSeq = (this._speakSeq || 0) + 1;
+    this._speakChain = Promise.resolve();
+    this._sayBuf = "";
+    this._saySpoken = 0;
+    this._textBuf = "";
+    this._textLive = "";
+    this._textSpoken = 0;
+    if (this._audio) { try { this._audio.pause(); } catch (e) {} this._audio = null; }
+    this.setState({ speaking: false });
+  };
+
+  queueSpeak = (sentence, tone) => {
+    let clean = (sentence || "").trim();
+    // 句尾黏着的引用（没换行的情况）也剥掉
+    clean = clean.replace(/[（(]\s*(?:材料|用了|文件|来源)[:：][^）)]*[）)]\s*$/, "").replace(/<[^>\n]*>\s*$/, "").trim();
+    if (!clean) return;
+    if (/^[（(]?(材料|用了|文件|来源)[:：]/.test(clean) || /^<[^>]*>$/.test(clean) || /^-{3,}$/.test(clean)) return;
+    const seq = this._speakSeq || 0;
+    const msgId = this._replyMsgId;
+    // 立刻发起合成（与前一句的播放并行），播放靠链条保证顺序
+    // 音色优先使用这一句所属语气块；协议只允许真实存在的三种音源。
+    const tag = (tone || this._blockVoice || this._replyVoice || "").trim();
+    const known = (this.state.voices || []).includes(tag) || TONE_TAGS.indexOf(tag) >= 0;
+    const v = known ? tag : this.state.curVoice;
+    const replySegments = this._replySegments;
+    const segmentIndex = replySegments.length;
+    const debugBlockIndex = this._dbg && this._dbg.blocks ? this._dbg.blocks.length - 1 : -1;
+    replySegments.push({ text: clean, tone: tag, voice: v });
+    const tStart = Date.now();
+    const fetchP = fetch(this.api + "/api/voice/tts", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: clean, voice: v })
+    }).then(async r => {
+      if (!r.ok) {
+        this.dbgClip({ voice: v + " ✗", spoken: clean + "  ← 合成失败", ms: "-" });
+        return null;
+      }
+      // 服务端回传：真正用的音色 + 清洗后念出去的字（多音字替换、语气词剥离都在里面）
+      const dec = h => { try { return decodeURIComponent(r.headers.get(h) || ""); } catch (e) { return ""; } };
+      const used = dec("X-Voice-Used") || v;
+      const spoken = dec("X-Spoken-Text");
+      replySegments[segmentIndex] = { text: spoken || clean, tone: tag, voice: used };
+      this.dbgClip({
+        tone: tag, voice: used, blockIndex: debugBlockIndex,
+        spoken: spoken || clean,
+        ms: (Date.now() - tStart) + "ms"
+      });
+      if (msgId) {
+        this.setState(s => ({
+          messages: s.messages.map(x => x.id === msgId ? {
+            ...x,
+            voiceSegments: replySegments.filter(Boolean).map(seg => ({ ...seg }))
+          } : x)
+        }), this.saveChatHistory);
+      }
+      return r.blob();
+    }).catch(() => null);
+    this._speakChain = (this._speakChain || Promise.resolve()).then(async () => {
+      if (seq !== this._speakSeq) return;
+      const blob = await fetchP;
+      if (!blob || seq !== this._speakSeq) return;
+      // 缓存本条回复的每一句音频，点「听」可立刻再播
+      if (msgId) {
+        this._replyClips.push(blob);
+        this._msgAudio[msgId] = { clips: this._replyClips.slice(), voice: v };
+        this.setState(s => {
+          const m = s.messages.map(x => x.id === msgId ? { ...x, audioReady: true, voice: v } : x);
+          return { messages: m };
+        });
+      }
+      await new Promise(done => {
+        const a = new Audio(URL.createObjectURL(blob));
+        this._audio = a;
+        this.setState({ speaking: true });
+        a.onended = done; a.onerror = done;
+        a.play().catch(done);
+      });
+      if (seq === this._speakSeq) this.setState({ speaking: false });
+    });
+  };
+
+  sttBlobQuiet = async (blob) => {
+    // 中间结果专用：失败静默（太短/静音的片段报 422 很正常，不打扰用户）
+    try {
+      const fd = new FormData();
+      fd.append("file", blob, "mic.webm");
+      const r = await fetch(this.api + "/api/voice/transcribe", { method: "POST", body: fd });
+      if (!r.ok) return null;
+      return (await r.json()).text;
+    } catch (e) { return null; }
+  };
+
+  micToggle = async () => {
+    if (this.state.micState === "working") return;
+    if (this.state.micState === "recording") {
+      try { this._micRec && this._micRec.state === "recording" && this._micRec.stop(); } catch (e) {}
+      return;
+    }
+    this.setState({ micState: "recording", micError: "", micPartial: "" });
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const rec = new MediaRecorder(stream);
+      const chunks = [];
+      rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+      // 准流式：录音期间每 1.5s 把已录音频转一遍，实时显示中间结果
+      this._partialBusy = false;
+      this._partialTimer = setInterval(async () => {
+        if (this._partialBusy || !chunks.length || rec.state !== "recording") return;
+        this._partialBusy = true;
+        const text = await this.sttBlobQuiet(new Blob(chunks.slice(), { type: rec.mimeType || "audio/webm" }));
+        if (text && this.state.micState === "recording") this.setState({ micPartial: text });
+        this._partialBusy = false;
+      }, 1500);
+      rec.onstop = async () => {
+        clearInterval(this._partialTimer);
+        stream.getTracks().forEach(t => t.stop());
+        this.setState({ micState: "working" });
+        try {
+          const text = await this.sttBlob(new Blob(chunks, { type: rec.mimeType || "audio/webm" }));
+          this.setState({ micState: "idle", micPartial: "" });
+          if (text) this.send(text);
+        } catch (e) {
+          this.setState({ micState: "idle", micPartial: "", micError: e && e.message ? e.message : "转写失败" });
+        }
+      };
+      this._micRec = rec;
+      rec.start(1000);   // 每秒吐一块数据，供中间转写用
+    } catch (e) {
+      clearInterval(this._partialTimer);
+      this.setState({ micState: "idle", micPartial: "", micError: "拿不到麦克风。浏览器里允许录音后再试。" });
+    }
+  };
+
+  setVoice = async () => {
+    if (!this._blob) { this.setState({ recError: "没拿到录音数据，重录一次" }); return; }
+    this.setState({ settingRef: true });
+    try {
+      const fd = new FormData();
+      fd.append("file", this._blob, "ref.webm");
+      fd.append("name", this.state.refName.trim() || "默认");
+      const r = await fetch(this.api + "/api/voice/set_ref", { method: "POST", body: fd });
+      if (!r.ok) {
+        let m = "设置失败";
+        try { m = (await r.json()).detail || m; } catch (e) {}
+        throw new Error(m);
+      }
+      const d = await r.json();
+      this.setState({ settingRef: false, voiceRefSet: true, curVoice: d.name });
+      this.checkVoice();
+      this.toast("音色「" + d.name + "」已保存（" + d.seconds + " 秒）");
+    } catch (e) {
+      this.setState({ settingRef: false });
+      this.toast(e && e.message ? e.message : "设置失败");
+    }
+  };
+
+  send = async (evOrText) => {
+    const text = (typeof evOrText === "string" ? evOrText : this.state.input).trim();
+    if (!text || this.state.streaming) return;
+    const now = Date.now();
+    const uid = "u" + now;
+    const aid = "a" + now;
+    const messages = this.state.messages.concat([
+      { role: "user", content: text, id: uid, createdAt: now },
+      { role: "assistant", content: "", id: aid, createdAt: now }
+    ]);
+    this.setState({ messages, input: "", streaming: true, waiting: true, chatError: false });
+    this.scrollChatToBottom();
+    this._aiAccum = "";
+    this.resetSpeech();
+    this._replyClips = [];
+    this._replySegments = [];
+    this._replyMsgId = aid;
+    // 语气块协议：「语气：X / 话：……」，剥掉标签行、按块选音色
+    this._rawBuf = "";
+    this._mode = "";
+    this._wave = false;
+    this._needNL = false;
+    this._sayHadContent = false;
+    this._textLive = "";
+    this._textSpoken = 0;
+    this._blockVoice = "";
+    this._replyVoice = "";
+    this.dbgStart(text);
+    await this.refreshStatus();
+    if (this.state.demo) return this.demoStream();
+    try {
+      const hist = messages.slice(0, -1).map(m => ({ role: m.role, content: m.content }));
+      const res = await fetch(this.api + "/api/chat", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ character_id: "demo-character", model: this.state.model, messages: hist })
+      });
+      if (!res.ok || !res.body) throw new Error();
+      const reader = res.body.getReader(), dec = new TextDecoder();
+      let buf = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop();
+        for (const line of lines) {
+          const t = line.trim();
+          if (!t.startsWith("data:")) continue;
+          const payload = t.slice(5).trim();
+          if (payload === "[DONE]") { this.finishStream(); return; }
+          let obj;
+          try { obj = JSON.parse(payload); } catch (e) { continue; }
+          if (obj.error) { this.failStream(); return; }
+          if (obj.delta) this.appendDelta(obj.delta);
+        }
+      }
+      this.finishStream();
+    } catch (e) { this.failStream(); }
+  };
+
+  // 回复格式：「语气：X / 话：……」一块一个语气，可以多块。
+  // 标签行只在行首出现 → 行首时缓冲一行再判断，块内正文照旧逐字流式。
+  appendDelta(d) {
+    this.dbgRaw(d);
+    this._rawBuf = (this._rawBuf || "") + d;
+    this.drainRaw(false);
+  }
+
+  drainRaw(final) {
+    for (;;) {
+      let buf = this._rawBuf || "";
+      if (!buf) return;
+      // mode: "say"=在「音」行（发音文字，立刻送 TTS，屏幕上显示波浪条）
+      //       "text"=在「话」行（正常文字，攒齐整块再上屏，替掉波浪条）
+      if (this._mode) {
+        const nl = buf.indexOf("\n");
+        const chunk = nl < 0 ? buf : buf.slice(0, nl);
+        this._rawBuf = nl < 0 ? "" : buf.slice(nl + 1);
+        if (chunk) {
+          if (this._mode === "say") this.feedSay(chunk);
+          else this.feedText(chunk);
+        }
+        if (nl < 0) return;
+        if (this._mode === "say") this.endSay();
+        else this.endText();
+        this._mode = "";               // 回到行首，下一行可能是新标签
+        continue;
+      }
+      // 行首。「音：」「话：」前缀一到就放行，不等换行——发音文字才能逐字送 TTS
+      const sm = buf.match(this._SAY_RE);
+      if (sm) { this._rawBuf = buf.slice(sm[0].length); this._mode = "say"; continue; }
+      const cm = buf.match(this._CONTENT_RE);
+      if (cm) { this._rawBuf = buf.slice(cm[0].length); this._mode = "text"; continue; }
+      const nl = buf.indexOf("\n");
+      if (nl < 0) {
+        // 语气标签行要等到换行才知道值到哪；像标签就等，不像就当正文（模型没按格式写也不卡）
+        if (!final && this.mayBeLabel(buf)) return;
+        const vm0 = buf.match(this._VOICE_RE);
+        if (vm0) { this.setBlockVoice(vm0[1].trim()); this._rawBuf = ""; return; }
+        this._mode = "text";
+        continue;
+      }
+      const line = buf.slice(0, nl);
+      const vm = line.match(this._VOICE_RE);
+      if (vm) {
+        this.setBlockVoice(vm[1].trim());
+        this._rawBuf = buf.slice(nl + 1);
+        continue;
+      }
+      if (!line.trim()) { this._rawBuf = buf.slice(nl + 1); continue; }   // 空行跳过
+      this._mode = "text";                     // 没按格式写：整行当正文
+    }
+  }
+
+  _VOICE_RE = /^\s*(?:语气音色|语气|音色|情绪|tone|voice|emotion)\s*[：:]\s*([^\n]*)$/i;
+  _SAY_RE = /^\s*(?:音|发音|念|读法|say)\s*[：:]\s*/i;
+  _CONTENT_RE = /^\s*(?:话|说|内容|正文|sentence|text)\s*[：:]\s*/i;
+  _KEYS = ["语气音色", "语气", "音色", "情绪", "音", "发音", "念", "读法", "say",
+           "话", "说", "内容", "正文", "sentence", "text", "tone", "voice", "emotion"];
+
+  // ---- 「音」行：逐句立刻朗读，屏幕上先立一根波浪条 ----
+
+  feedSay(chunk) {
+    this._sayBuf = (this._sayBuf || "") + chunk;
+    this.dbgFill("say", chunk);
+    // 文字模式只解析并保留「音」行，不自动合成。
+    // 之前这里绕过 voiceMode，导致整条回复只有音行被合成并污染缓存。
+    if (!this.state.voiceMode) return;
+    this.setWave(true);
+    const txt = this._sayBuf;
+    const re = /[。！？!?；;]/g;
+    let idx = -1, m;
+    while ((m = re.exec(txt)) !== null) idx = m.index;
+    if (idx + 1 <= (this._saySpoken || 0)) return;
+    const seg = txt.slice(this._saySpoken || 0, idx + 1);
+    this._saySpoken = idx + 1;
+    seg.split(/(?<=[。！？!?；;])/).forEach(s => this.queueSpeak(s, this._blockVoice));
+  }
+
+  endSay() {
+    const tail = (this._sayBuf || "").slice(this._saySpoken || 0);
+    if (tail.trim() && this.state.voiceMode) this.queueSpeak(tail, this._blockVoice);
+    this._sayHadContent = !!(this._sayBuf || "").trim();
+    this._sayBuf = "";
+    this._saySpoken = 0;
+  }
+
+  // ---- 「话」行：两条路 ----
+  // 这块有「音」行 → 声音已经在放了，文字攒齐整块再上屏（波浪条顶着）
+  // 这块没「音」行 → 不用等：逐字上屏 + 逐句朗读，跟以前一样快
+
+  feedText(chunk) {
+    this.dbgFill("text", chunk);
+    if (this._sayHadContent) { this._textBuf = (this._textBuf || "") + chunk; return; }
+    this.emitText(chunk);
+    this._textLive = (this._textLive || "") + chunk;
+    if (!this.state.voiceMode) return;
+    const txt = this._textLive;
+    const re = /[。！？!?；;]/g;
+    let idx = -1, m;
+    while ((m = re.exec(txt)) !== null) idx = m.index;
+    if (idx + 1 <= (this._textSpoken || 0)) return;
+    const seg = txt.slice(this._textSpoken || 0, idx + 1);
+    this._textSpoken = idx + 1;
+    seg.split(/(?<=[。！？!?；;])/).forEach(s => this.queueSpeak(s, this._blockVoice));
+  }
+
+  emitText(text) {
+    if (!text) return;
+    if (this._needNL) {
+      this._needNL = false;
+      if ((this._aiAccum || "").trim()) this.pushDelta("\n");
+    }
+    this.pushDelta(text);
+  }
+
+  endText() {
+    if (this._sayHadContent) {
+      const text = (this._textBuf || "").trim();
+      this._textBuf = "";
+      if (text) this.emitText(text);
+    } else {
+      const tail = (this._textLive || "").slice(this._textSpoken || 0);
+      if (tail.trim() && this.state.voiceMode) this.queueSpeak(tail, this._blockVoice);
+    }
+    this._textLive = "";
+    this._textSpoken = 0;
+    this._sayHadContent = false;
+    this._needNL = true;
+    this.setWave(false);
+  }
+
+  setWave(on) {
+    if (!!this._wave === !!on) return;
+    this._wave = !!on;
+    const id = this._replyMsgId;
+    if (!id) return;
+    this.setState(s => ({
+      messages: s.messages.map(x => x.id === id ? { ...x, wave: !!on } : x)
+    }));
+  }
+
+  // 这段（还没收到换行的）有没有可能是标签行？只看冒号前的关键词，
+  // 别拿字符白名单去卡——标签值是中文语气名，字符白名单容易误判成正文
+  mayBeLabel(buf) {
+    const s = buf.replace(/^\s+/, "");
+    if (!s) return true;
+    const ci = s.search(/[：:]/);
+    const head = (ci < 0 ? s : s.slice(0, ci)).trim().toLowerCase();
+    if (head.length > 8) return false;
+    return ci >= 0
+      ? this._KEYS.indexOf(head) >= 0
+      : this._KEYS.some(k => k.toLowerCase().indexOf(head) === 0);
+  }
+
+  // ---- 调试面板：把这一轮的原文、每块的语气/音行/话行、真正念出去的字都记下来 ----
+
+  dbgStart(ask) {
+    this._dbg = {
+      ask, model: this.state.model, t0: Date.now(), firstAt: 0,
+      raw: "", blocks: [], clips: []
+    };
+  }
+
+  dbgRaw(d) {
+    if (!this._dbg) return;
+    if (!this._dbg.firstAt) this._dbg.firstAt = Date.now();
+    this._dbg.raw += d;
+  }
+
+  dbgBlock(tone) {
+    if (!this._dbg) return;
+    this._dbg.blocks.push({
+      tone: tone || "(没写语气)", say: "", text: "", actualVoices: []
+    });
+  }
+
+  dbgFill(field, val) {
+    if (!this._dbg || !this._dbg.blocks.length) {
+      if (this._dbg) this.dbgBlock("");
+      else return;
+    }
+    const b = this._dbg.blocks[this._dbg.blocks.length - 1];
+    b[field] = (b[field] || "") + val;
+  }
+
+  dbgClip(entry) {
+    if (!this._dbg) return;
+    if (Number.isInteger(entry.blockIndex) && entry.blockIndex >= 0) {
+      const block = this._dbg.blocks[entry.blockIndex];
+      if (block && entry.voice && block.actualVoices.indexOf(entry.voice) < 0) {
+        block.actualVoices.push(entry.voice);
+      }
+    }
+    this._dbg.clips.push(entry);
+    this.dbgFlush();
+  }
+
+  dbgFlush() {
+    if (!this._dbg) return;
+    const d = this._dbg;
+    const turn = {
+      ask: d.ask, model: d.model || "?", raw: d.raw,
+      firstMs: d.firstAt ? (d.firstAt - d.t0) : 0,
+      totalMs: (d.endAt || Date.now()) - d.t0,
+      blocks: d.blocks.slice(), clips: d.clips.slice()
+    };
+    this.setState(s => {
+      const list = s.debugTurns.slice();
+      if (list.length && list[0]._id === d.t0) list[0] = { ...turn, _id: d.t0 };
+      else list.unshift({ ...turn, _id: d.t0 });
+      return { debugTurns: list.slice(0, 12) };   // 只留最近 12 轮
+    });
+  }
+
+  toggleDebug = () => {
+    this.setState(s => ({ debugOpen: !s.debugOpen, settingsOpen: false }));
+  };
+
+  toggleSettings = () => {
+    this.setState(s => ({ settingsOpen: !s.settingsOpen }));
+  };
+
+  // ---- 主题：跟随系统 + 记住手动选择 ----
+
+  _themeKey = "ohmylover_demo_theme_v1";
+
+  // 变量也写到 <html> 上：body 在根 div 外面继承不到，
+  // 顺便设 color-scheme 让原生下拉框/滚动条跟着变深
+  applyPalette(t) {
+    try {
+      const pal = THEMES[t === "night" ? "night" : "day"];
+      const el = document.documentElement;
+      Object.keys(pal).forEach(k => el.style.setProperty(k, pal[k]));
+      el.style.colorScheme = t === "night" ? "dark" : "light";
+    } catch (e) {}
+  }
+
+  initTheme() {
+    let t = "";
+    try { t = localStorage.getItem(this._themeKey) || ""; } catch (e) {}
+    if (t !== "day" && t !== "night") {
+      try {
+        t = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "night" : "day";
+      } catch (e) { t = "day"; }
+    }
+    this.applyPalette(t);
+    this.setState({ theme: t });
+  }
+
+  toggleTheme = () => {
+    this.setState(s => {
+      const t = s.theme === "night" ? "day" : "night";
+      try { localStorage.setItem(this._themeKey, t); } catch (e) {}
+      this.applyPalette(t);
+      return { theme: t };
+    });
+  };
+
+  clearDebug = () => this.setState({ debugTurns: [] });
+
+  setBlockVoice(v) {
+    if (!v) return;
+    this.dbgBlock(v);
+    this._blockVoice = v;
+    if (!this._replyVoice) this._replyVoice = v;   // 整条回复的代表音色（历史回放用）
+    const vid = this._replyMsgId;
+    if (vid && this._replyVoice === v) {
+      this.setState(s => ({
+        messages: s.messages.map(x => x.id === vid ? { ...x, voice: v } : x)
+      }));
+    }
+  }
+
+  pushDelta(d) {
+    this.setState(s => {
+      const m = s.messages.slice();
+      const last = m[m.length - 1];
+      m[m.length - 1] = { ...last, content: last.content + d };
+      return { messages: m, waiting: false };
+    });
+    this._aiAccum = (this._aiAccum || "") + d;
+    this.scrollChatToBottom();
+  }
+
+  finishStream() {
+    this.drainRaw(true);      // 收尾：没等到换行的残留也放出来
+    if (this._mode === "say") this.endSay();
+    this.endText();           // 最后一块的正文上屏 + 撤波浪条
+    this._mode = "";
+    this.setState({ streaming: false, waiting: false });
+    if (this._dbg) { this._dbg.endAt = Date.now(); this.dbgFlush(); }
+    this.refreshStatus();
+    this.saveChatHistory();
+    this.scrollChatToBottom();
+  }
+
+  failStream() {
+    this.drainRaw(true);
+    this.resetSpeech();
+    this.setState(s => {
+      const m = s.messages.slice();
+      if (m.length && m[m.length - 1].role === "assistant" && !m[m.length - 1].content) m.pop();
+      return { messages: m, streaming: false, waiting: false, chatError: true };
+    });
+  }
+
+  demoStream() {
+    const speed = this.props.typingSpeed || 22;
+    const text = DEMO.reply;
+    let i = 0;
+    setTimeout(() => {
+      this._iv = setInterval(() => {
+        if (i >= text.length) { clearInterval(this._iv); this.finishStream(); return; }
+        this.appendDelta(text.slice(i, i + 2));
+        i += 2;
+      }, speed);
+    }, 550);
+  }
+
+  // ---- 收藏 ----
+
+  loadFavorites = async () => {
+    if (this.state.demo) return;
+    try {
+      const r = await fetch(this.api + "/api/favorites");
+      if (!r.ok) throw new Error();
+      const d = await r.json();
+      this.setState({ favorites: d.items || [] });
+    } catch (e) { /* 静默 */ }
+  };
+
+  favoriteMsg = async (msg) => {
+    if (!msg || !msg.content || this.state.demo) return;
+    if (this.state.favBusyId) return;
+    this.setState({ favBusyId: msg.id || "x" });
+    try {
+      let entry;
+      try {
+        entry = await this.ensureMsgAudio(msg);
+      } catch (e) {
+        // 没开语音也能收藏文字？不行——收藏要能马上听，必须有音频
+        throw e;
+      }
+      const wav = await this.concatWavBlobs(entry.clips);
+      const audio_b64 = await this.blobToB64(wav);
+      const r = await fetch(this.api + "/api/favorites", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: this.cleanSpeakText(msg.content),
+          voice: entry.voice || msg.voice || this.state.curVoice || "",
+          audio_b64
+        })
+      });
+      if (!r.ok) {
+        let m = "收藏失败";
+        try { m = (await r.json()).detail || m; } catch (e) {}
+        throw new Error(m);
+      }
+      await this.loadFavorites();
+      this.toast("已收藏，可在「收藏」页随时听");
+    } catch (e) {
+      this.toast(e && e.message ? e.message : "收藏失败");
+    } finally {
+      this.setState({ favBusyId: "" });
+    }
+  };
+
+  playFavorite = async (fid) => {
+    try {
+      this.resetSpeech();
+      this.setState({ speaking: true });
+      const r = await fetch(this.api + "/api/favorites/" + encodeURIComponent(fid) + "/audio");
+      if (!r.ok) throw new Error("读不到这条收藏");
+      const a = new Audio(URL.createObjectURL(await r.blob()));
+      this._audio = a;
+      await new Promise(done => { a.onended = done; a.onerror = done; a.play().catch(done); });
+    } catch (e) {
+      this.toast(e && e.message ? e.message : "播放失败");
+    } finally {
+      this.setState({ speaking: false });
+    }
+  };
+
+  deleteFavorite = async (fid) => {
+    if (!window.confirm("删除这条收藏？")) return;
+    try {
+      const r = await fetch(this.api + "/api/favorites/" + encodeURIComponent(fid), { method: "DELETE" });
+      if (!r.ok) throw new Error();
+      this.loadFavorites();
+      this.toast("已删除");
+    } catch (e) { this.toast("删除失败"); }
+  };
+
+  openCorrection = () => this.setState({ correctionOpen: true, wrong: "", right: "", correctionError: "" });
+  closeCorrection = () => this.setState({ correctionOpen: false });
+
+  submitCorrection = async () => {
+    const { wrong, right } = this.state;
+    if (!wrong.trim() || !right.trim()) return;
+    if (this.state.demo) {
+      this.setState(s => ({ correctionOpen: false, status: { ...s.status, corrections: s.status.corrections + 1 } }));
+      this.toast("已记入，下一轮生效");
+      return;
+    }
+    try {
+      const r = await fetch(this.api + "/api/corrections", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wrong: wrong.trim(), right: right.trim() })
+      });
+      if (!r.ok) throw new Error();
+      const d = await r.json();
+      this.setState(s => ({ correctionOpen: false, status: { ...s.status, corrections: d.count } }));
+      this.toast("已记入，下一轮生效");
+    } catch (e) {
+      this.setState({ correctionError: "没能记下来。后端可能没在跑，稍后再试。" });
+    }
+  };
+
+  loadContext = async () => {
+    if (this.state.demo) return this.setState({ context: DEMO.context });
+    try {
+      const r = await fetch(this.api + "/api/context");
+      if (!r.ok) throw new Error();
+      this.setState({ context: await r.json() });
+    } catch (e) { this.toast("读不到上下文。后端可能没在跑。"); }
+  };
+
+  async loadQuestions() {
+    try {
+      const r = await fetch(this.api + "/api/questions");
+      if (!r.ok) throw new Error();
+      const d = await r.json();
+      this.setState({ groups: d.groups || [] });
+    } catch (e) {}
+  }
+
+  toggleQuestion = async (q) => {
+    if (this.state.openQ === q.id) return this.setState({ openQ: null, answerDraft: "" });
+    if (q.holdout && (q.answered || this.state.hiddenHoldout[q.id])) return;
+    let draft = "";
+    if (!q.holdout) {
+      if (this.state.demo) draft = DEMO.answers[q.id] || "";
+      else {
+        try {
+          const r = await fetch(this.api + "/api/answers/" + q.id);
+          if (r.ok) draft = (await r.json()).content || "";
+        } catch (e) {}
+      }
+    }
+    this.setState({ openQ: q.id, answerDraft: draft });
+  };
+
+  saveAnswer = async (q) => {
+    const content = this.state.answerDraft;
+    const mark = () => this.setState(s => ({
+      openQ: null, answerDraft: "",
+      hiddenHoldout: q.holdout ? { ...s.hiddenHoldout, [q.id]: true } : s.hiddenHoldout,
+      groups: s.groups.map(g => ({ ...g, questions: g.questions.map(x => x.id === q.id ? { ...x, answered: true } : x) }))
+    }));
+    if (this.state.demo) { if (!q.holdout) DEMO.answers[q.id] = content; mark(); return; }
+    try {
+      const r = await fetch(this.api + "/api/answers/" + q.id, {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content })
+      });
+      if (!r.ok) throw new Error();
+      mark();
+      this.refreshStatus();
+    } catch (e) { this.toast("没保存上。后端可能没在跑。"); }
+  };
+
+  async loadMaterials() {
+    try {
+      const r = await fetch(this.api + "/api/materials");
+      if (!r.ok) throw new Error();
+      const d = await r.json();
+      this.setState({ materials: d.files || [] });
+    } catch (e) {}
+  }
+
+  viewMaterial = async (f) => {
+    if (this.state.demo) return this.setState({ viewingName: f.name, viewingContent: DEMO.materialContent[f.name] || f.preview });
+    try {
+      const r = await fetch(this.api + "/api/materials/" + encodeURIComponent(f.name));
+      if (!r.ok) throw new Error();
+      const d = await r.json();
+      this.setState({ viewingName: d.name, viewingContent: d.content });
+    } catch (e) { this.toast("打不开这份材料。后端可能没在跑。"); }
+  };
+
+  saveMaterial = async () => {
+    const name = this.state.pasteName.trim(), content = this.state.pasteContent;
+    if (!name || !content.trim()) return;
+    if (this.state.demo) {
+      if (this.state.materials.some(f => f.name === name)) return this.setState({ materialError: "文件已存在，换个名字" });
+      this.setState(s => ({
+        materials: s.materials.concat([{ name, chars: content.length, preview: content.split("\n")[0].slice(0, 40) }]),
+        pasteContent: "", materialError: "",
+        status: { ...s.status, answers: s.status.answers + 1 }
+      }));
+      return;
+    }
+    try {
+      const r = await fetch(this.api + "/api/materials", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, content })
+      });
+      if (r.status === 409) return this.setState({ materialError: "文件已存在，换个名字" });
+      if (!r.ok) throw new Error();
+      this.setState({ pasteContent: "", materialError: "" });
+      this.loadMaterials();
+      this.refreshStatus();
+    } catch (e) { this.setState({ materialError: "没存上。后端可能没在跑。" }); }
+  };
+
+  toggleRecord = async () => {
+    if (this.state.recState === "recording") {
+      clearInterval(this._recIv);
+      try { this._rec && this._rec.state === "recording" && this._rec.stop(); } catch (e) {}
+      try { this._stream && this._stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+      this.setState({ recState: "recorded" });
+      return;
+    }
+    this.setState({ recState: "recording", recSeconds: 0, recError: "" });
+    this._recIv = setInterval(() => this.setState(s => ({ recSeconds: s.recSeconds + 1 })), 1000);
+    try {
+      this._stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this._rec = new MediaRecorder(this._stream);
+      this._recChunks = [];
+      this._rec.ondataavailable = e => { if (e.data && e.data.size) this._recChunks.push(e.data); };
+      this._rec.onstop = () => { this._blob = new Blob(this._recChunks, { type: this._rec.mimeType || "audio/webm" }); };
+      this._rec.start();
+    } catch (e) {
+      clearInterval(this._recIv);
+      this.setState({ recState: "idle", recSeconds: 0, recError: "拿不到麦克风。浏览器里允许录音后再试。" });
+    }
+  };
+
+  discardRecording = () => this.setState({ recState: "idle", recSeconds: 0, recError: "" });
+
+  transcribe = async () => {
+    this.setState({ transcribing: true });
+    const finish = (text) => this.setState(s => ({
+      transcribing: false, recState: "idle", recSeconds: 0,
+      pasteContent: s.pasteContent ? s.pasteContent + "\n\n" + text : text
+    }));
+    if (this.state.demo) { setTimeout(() => finish(DEMO.transcript), 900); return; }
+    if (!this._blob) { this.setState({ transcribing: false, recError: "没拿到录音数据，重录一次" }); return; }
+    try {
+      finish(await this.sttBlob(this._blob, true));
+    } catch (e) {
+      this.setState({ transcribing: false, recError: (e && e.message) || "转写失败。语音服务开了吗？" });
+    }
+  };
+
+  navStyle(page) {
+    const on = this.state.page === page;
+    return "white-space:nowrap; font-size:15px; font-weight:700; cursor:pointer; padding:9px 18px; border-radius:999px; border:2.5px solid var(--line); transition:transform .1s ease, box-shadow .1s ease;"
+      + (on
+        ? "background:var(--code-bg); color:var(--on-solid); box-shadow:3px 3px 0 #ffd84d;"
+        : "background:transparent; color:var(--fg); box-shadow:3px 3px 0 rgba(var(--line-rgb), .18);");
+  }
+
+  renderVals() {
+    const s = this.state, st = s.status;
+    const go = p => () => this.setState({ page: p, settingsOpen: false });
+    const dead = "var(--muted)";
+
+    // 主题变量挂在最外层 inline style 上，往下层层继承
+    const pal = THEMES[s.theme === "night" ? "night" : "day"];
+    const rootStyle = Object.keys(pal).map(k => k + ":" + pal[k]).join("; ")
+      + "; min-height:100vh; height:100vh; display:flex; flex-direction:column;"
+      + " background:var(--bg); background-image:radial-gradient(var(--dots) 1px, transparent 1px);"
+      + " background-size:22px 22px; background-position:-1px -1px; color:var(--fg);"
+      + " font-family:'Noto Sans SC',system-ui,sans-serif;";
+
+    // 空的助手占位消息不渲染气泡——等待期间只留下面那个三点 loading
+    // （正在出声但文字还没上屏的除外：那条要显示波浪条）
+    const visibleMsgs = s.messages.filter(m => m.role === "user" || m.content || m.wave);
+    const chatMessages = visibleMsgs.map((m, i) => {
+      const isUser = m.role === "user";
+      const isLast = i === visibleMsgs.length - 1;
+      const prev = i > 0 ? visibleMsgs[i - 1] : null;
+      const next = i + 1 < visibleMsgs.length ? visibleMsgs[i + 1] : null;
+      const ts = Number(m.createdAt) || 0;
+      const samePrev = !!(prev && prev.role === m.role && ts && prev.createdAt
+        && Math.abs(ts - Number(prev.createdAt)) <= 120000);
+      const sameNext = !!(next && next.role === m.role && ts && next.createdAt
+        && Math.abs(Number(next.createdAt) - ts) <= 120000);
+      // 把尾部的来源引用（无论模型放不放独立行）摘出来单独渲染，正文保持干净
+      let display = m.content, cite = "";
+      if (!isUser && m.content) {
+        const cm = m.content.match(/[（(]\s*(?:材料|用了|文件|来源)[:：]([^）)]*)[）)]\s*$/);
+        if (cm) {
+          cite = cm[1].trim();
+          display = m.content.slice(0, cm.index).replace(/[\n\s]*-{3,}\s*$/, "").trimEnd();
+        }
+      }
+      return {
+        display,
+        cite,
+        hasCite: false,
+        hasText: !!(display && display.trim()),
+        showDate: !!(ts && (!prev || this.dayKey(prev.createdAt) !== this.dayKey(ts))),
+        dateLabel: this.dateLabel(ts),
+        showTime: !!(ts && !sameNext),
+        timeText: this.timeLabel(ts),
+        lineStyle: "display:flex; align-items:flex-start; gap:10px; width:100%; flex-direction:"
+          + (isUser ? "row-reverse" : "row") + ";",
+        avatarText: isUser ? "我" : "E",
+        avatarStyle: "width:38px; height:38px; flex:none; border-radius:12px; border:2px solid var(--line);"
+          + " display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:900;"
+          + " background:" + (isUser ? "#35b39a" : "#ffd84d") + ";"
+          + (samePrev ? "visibility:hidden;" : ""),
+        wave: !isUser && !!m.wave,
+        waveBubbleStyle: "padding:13px 22px; border:2px solid var(--line); border-radius:16px 16px 16px 5px; background:var(--surf); width:fit-content;",
+        rowStyle: "max-width:78%; display:flex; flex-direction:column; gap:6px; align-items:" + (isUser ? "flex-end" : "flex-start") + ";",
+        bubbleStyle: "max-width:100%; padding:13px 17px; border:2px solid var(--line); line-height:1.75; font-size:15px; font-weight:500; white-space:pre-wrap;"
+          + (isUser
+            ? "background:#ffd84d; border-radius:17px 17px 5px 17px;"
+            : "background:var(--surf); border-radius:17px 17px 17px 5px;"),
+        // 纠偏入口暂时隐藏，后端和弹窗代码保留，后续需要时可直接恢复。
+        showCorrect: false,
+        onCorrect: this.openCorrection,
+        showSpeak: !isUser && !!m.content && s.voiceOk && !(isLast && s.streaming),
+        speakLabel: (m.audioReady || (m.id && this._msgAudio[m.id] && this._msgAudio[m.id].clips.length)) ? "▶ 再听" : "▶ 听",
+        onSpeak: () => this.speakMsg(m),
+        showFav: !isUser && !!m.content && s.voiceOk && !s.demo && !(isLast && s.streaming),
+        favBusy: s.favBusyId === m.id,
+        onFav: () => this.favoriteMsg(m)
+      };
+    });
+
+    // 调试面板数据
+    const TONE_COLOR = { 唠嗑: "#ffd84d", 正事: "#35b39a", 夜话: "#9b6bf0" };
+    const chip = (bg, fg) => "background:" + bg + "; color:" + (fg || "var(--line)")
+      + "; border:1.5px solid var(--line); border-radius:999px; padding:2px 9px; font-size:11px; font-weight:800; white-space:nowrap;";
+    const debugTurns = (s.debugTurns || []).map(d => {
+      const sayCount = d.blocks.filter(b => (b.say || "").trim()).length;
+      return {
+        ask: d.ask, model: d.model, raw: d.raw || "(空)",
+        firstMs: d.firstMs + "ms",
+        firstStyle: chip(d.firstMs > 4000 ? "#f0563c" : "var(--chrome2)", d.firstMs > 4000 ? "var(--surf2)" : ""),
+        totalMs: (d.totalMs / 1000).toFixed(1) + "s",
+        blockCount: d.blocks.length,
+        sayCount,
+        chars: d.blocks.reduce((n, b) => n + (b.text || "").length, 0),
+        blocks: d.blocks.map(b => ({
+          tone: b.tone,
+          toneStyle: chip(TONE_COLOR[b.tone] || "var(--chrome2)", b.tone === "夜话" ? "var(--surf2)" : ""),
+          voice: (b.actualVoices || []).join(" / "),
+          hasActual: (b.actualVoices || []).length > 0,
+          fallbackText: (b.actualVoices || []).some(v => v !== b.tone) ? "（发生回退）" : "",
+          hasSay: !!(b.say || "").trim(),
+          say: b.say, text: (b.text || "").trim() || "(空)"
+        })),
+        hasClips: d.clips.length > 0,
+        clips: d.clips.map(c => ({
+          voice: (c.tone ? "目标 " + c.tone + " → 实际 " : "实际 ") + c.voice,
+          spoken: c.spoken, ms: c.ms,
+          badgeStyle: chip("var(--line)", "#ffd84d")
+        }))
+      };
+    });
+
+    let normalTotal = 0, normalDone = 0, holdoutTotal = 0, holdoutDone = 0;
+    const groups = s.groups.map(g => ({
+      title: g.title,
+      questions: g.questions.map(q => {
+        const hidden = q.holdout && (q.answered || s.hiddenHoldout[q.id]);
+        if (q.holdout) { holdoutTotal++; if (q.answered) holdoutDone++; }
+        else { normalTotal++; if (q.answered) normalDone++; }
+        const open = s.openQ === q.id;
+        return {
+          id: q.id, text: q.text, isHoldout: !!q.holdout, open,
+          cardStyle: "background:" + (open ? "var(--surf2)" : "var(--surf)") + "; border:3px solid var(--line); border-radius:16px; box-shadow:" + (open ? "6px 6px 0 #ffd84d" : "5px 5px 0 var(--line)") + "; overflow:hidden;",
+          stateLabel: hidden ? "已答（留出，不回看）" : (q.answered ? "已答" : "未答"),
+          stateStyle: "font-size:12px; font-weight:700; white-space:nowrap; border:2px solid var(--line); border-radius:999px; padding:2px 11px; background:"
+            + (q.answered ? "#35b39a" : "transparent") + ";",
+          onToggle: () => this.toggleQuestion(q),
+          onSave: () => this.saveAnswer(q)
+        };
+      })
+    }));
+
+    const ctx = s.context;
+    const sendOff = s.streaming || !s.input.trim();
+    const pasteOff = !s.pasteName.trim() || !s.pasteContent.trim();
+    const corrOff = !s.wrong.trim() || !s.right.trim();
+
+    return {
+      demo: s.demo,
+      isChat: s.page === "chat", isFavorites: s.page === "favorites",
+      isContext: s.page === "context",
+      isQuestions: s.page === "questions", isMaterials: s.page === "materials",
+      goChat: go("chat"),
+      goFavorites: () => { this.setState({ page: "favorites", settingsOpen: false }); this.loadFavorites(); },
+      goContext: go("context"), goQuestions: go("questions"), goMaterials: go("materials"),
+      navChat: this.navStyle("chat"), navFavorites: this.navStyle("favorites"),
+      navContext: this.navStyle("context"),
+      navQuestions: this.navStyle("questions"), navMaterials: this.navStyle("materials"),
+
+      statusAnswers: st.answers, statusCards: st.memory_cards || 0,
+      statusCorrections: st.corrections, statusChars: st.system_chars,
+      models: st.models || [], model: s.model,
+      onModelChange: e => this.setState({ model: e.target.value }),
+      noMaterials: s.ready && st.answers === 0,
+      hasChat: (s.messages || []).some(m => m && m.content),
+      clearChat: this.clearChat,
+
+      rootStyle,
+      presenceText: s.waiting ? "正在想……" : (s.speaking ? "正在说话" : (s.streaming ? "正在回话……" : "在这儿")),
+      toggleTheme: this.toggleTheme,
+      themeLabel: s.theme === "night" ? "☀" : "☾",
+      themeBtnStyle: "width:34px; height:34px; flex:none; display:inline-flex; align-items:center; justify-content:center;"
+        + " background:var(--surf); color:var(--fg); border:2.5px solid var(--line); border-radius:999px;"
+        + " font-size:15px; font-weight:700; cursor:pointer; box-shadow:3px 3px 0 var(--line); padding:0;",
+      settingsOpen: s.settingsOpen,
+      toggleSettings: this.toggleSettings,
+      settingsBtnStyle: "height:34px; flex:none; background:var(--surf); color:var(--fg); border:2.5px solid var(--line);"
+        + " border-radius:999px; padding:0 13px; font-size:12px; font-weight:800; cursor:pointer;"
+        + " box-shadow:3px 3px 0 var(--line);",
+      settingsActionStyle: "background:var(--surf2); color:var(--fg); border:1.5px solid var(--line);"
+        + " border-radius:999px; padding:6px 11px; font-size:12px; font-weight:700; cursor:pointer;",
+
+      debugOpen: s.debugOpen, debugTurns, noDebug: !debugTurns.length,
+      toggleDebug: this.toggleDebug, clearDebug: this.clearDebug,
+      debugBtnStyle: "white-space:nowrap; border:2.5px solid var(--line); border-radius:999px; padding:6px 14px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:3px 3px 0 var(--line);"
+        + (s.debugOpen ? "background:#9b6bf0; color:var(--on-solid);" : "background:var(--surf); color:var(--fg);"),
+
+      favorites: (s.favorites || []).map(f => ({
+        text: f.text,
+        created: f.created || "",
+        voiceLabel: f.voice ? " · " + f.voice : "",
+        onPlay: () => this.playFavorite(f.id),
+        onDelete: () => this.deleteFavorite(f.id)
+      })),
+      favCount: (s.favorites || []).length,
+      noFavorites: !(s.favorites || []).length,
+      loadFavorites: this.loadFavorites,
+
+      chatMessages, waiting: s.waiting, streaming: s.streaming, chatError: s.chatError,
+      quietActionStyle: "border:0; background:transparent; color:var(--fg); padding:2px 4px;"
+        + " font-size:11px; font-weight:700; opacity:.46; cursor:pointer;",
+      input: s.input,
+      onInput: e => this.setState({ input: e.target.value }),
+      onKeyDown: e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); this.send(); } },
+      send: this.send,
+      sendDisabled: sendOff,
+      sendButtonStyle: "width:42px; height:42px; flex:none; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; border:2.5px solid var(--line); cursor:" + (sendOff ? "default" : "pointer") + "; color:" + (sendOff ? "var(--line)" : "var(--on-solid)") + "; background:" + (sendOff ? dead : "var(--line)") + "; box-shadow:" + (sendOff ? "none" : "3px 3px 0 #f0876b") + ";",
+      copyBackendCmd: () => this.copy("ohmylover"),
+      copyOllamaCmd: () => this.copy("ollama serve"),
+      copyTranscribeCmd: () => this.copy("python3 转写.py 录音/我"),
+
+      voiceOk: s.voiceOk,
+      voiceMode: s.voiceOk && s.voiceMode,
+      textMode: !(s.voiceOk && s.voiceMode),
+      toggleModeText: () => this.setState({ voiceMode: false }),
+      toggleModeVoice: () => {
+        if (!s.voiceRefSet) this.toast("还没有声音参考。去「我的素材」录一段，点「设为我的声音」");
+        this.setState({ voiceMode: true });
+      },
+      modeTextStyle: "border:0; padding:7px 16px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;"
+        + (!(s.voiceOk && s.voiceMode) ? "background:var(--code-bg); color:#ffd84d;" : "background:transparent; color:var(--fg);"),
+      modeVoiceStyle: "border:0; padding:7px 16px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;"
+        + (s.voiceOk && s.voiceMode ? "background:var(--code-bg); color:#ffd84d;" : "background:transparent; color:var(--fg);"),
+      micToggle: this.micToggle,
+      micWorking: s.micState === "working",
+      micLabel: s.micState === "recording" ? "停止" : (s.micState === "working" ? "…" : "说话"),
+      micStyle: "width:64px; height:64px; flex:none; border-radius:999px; cursor:pointer; font-weight:900; font-size:15px; font-family:inherit; border:3px solid var(--line);"
+        + (s.micState === "recording"
+          ? "background:#f0876b; color:#1a1a18; animation:recRing 1.3s infinite; box-shadow:3px 3px 0 var(--line);"
+          : (s.micState === "working"
+            ? "background:var(--muted); color:var(--fg); box-shadow:none; cursor:default;"
+            : "background:var(--solid); color:var(--on-solid); box-shadow:4px 4px 0 #35b39a;")),
+      micHint: s.micError
+        ? s.micError
+        : (s.micState === "recording"
+          ? (s.micPartial ? "“" + s.micPartial + "”" : "在录，说完点停止，转好直接发送")
+          : (s.micState === "working" ? (s.micPartial ? "“" + s.micPartial + "” …" : "转写中…")
+            : (s.speaking ? "正在用你的声音回答…" : "点「说话」开始，AI 的回复会读出来"))),
+      speaking: s.speaking,
+      canSetVoice: s.recState === "recorded" && s.voiceOk && !s.demo,
+      setVoice: this.setVoice,
+      settingRef: s.settingRef,
+      setVoiceLabel: s.settingRef ? "设置中…" : "设为我的声音",
+      voiceRefSet: s.voiceRefSet,
+      refName: s.refName,
+      onRefName: e => this.setState({ refName: e.target.value }),
+      hasManyVoices: s.voiceOk && (s.voices || []).length > 1,
+      voices: s.voices || [],
+      curVoice: s.curVoice,
+      onVoiceChange: e => this.setState({ curVoice: e.target.value }),
+      hasVram: !!(st.vram && st.vram.total_mb),
+      vramText: st.vram && st.vram.total_mb
+        ? "显存 " + (st.vram.used_mb / 1024).toFixed(1) + "/" + Math.round(st.vram.total_mb / 1024) + "G"
+        : "",
+      vramStyle: "white-space:nowrap; border:2.5px solid var(--line); border-radius:999px; padding:5px 14px; font-size:13px; font-weight:700; background:"
+        + (st.vram && st.vram.used_mb / st.vram.total_mb > 0.88 ? "#f0563c; color:var(--on-solid);" : "var(--chrome2);"),
+
+      correctionOpen: s.correctionOpen, wrong: s.wrong, right: s.right,
+      onWrong: e => this.setState({ wrong: e.target.value }),
+      onRight: e => this.setState({ right: e.target.value }),
+      correctionDisabled: corrOff,
+      submitStyle: "white-space:nowrap; border:2.5px solid var(--line); border-radius:999px; padding:10px 26px; font-size:14px; font-weight:900; cursor:" + (corrOff ? "default" : "pointer") + "; background:" + (corrOff ? dead : "#f0876b") + "; box-shadow:" + (corrOff ? "none" : "4px 4px 0 var(--line)") + ";",
+      correctionError: s.correctionError,
+      closeCorrection: this.closeCorrection, submitCorrection: this.submitCorrection,
+
+      loadContext: this.loadContext,
+      hasContext: !!ctx,
+      contextSystem: ctx ? ctx.system : "",
+      contextTotal: ctx ? ctx.total_chars : 0,
+      contextParts: ctx ? (ctx.parts || []).map(p => ({ name: p.name, chars: p.chars, isCorrections: p.name === "corrections.md" })) : [],
+      copySystem: () => this.copy(ctx ? ctx.system : ""),
+
+      groups, normalDone, normalTotal, holdoutDone, holdoutTotal,
+      answerDraft: s.answerDraft,
+      onAnswerInput: e => this.setState({ answerDraft: e.target.value }),
+
+      materials: s.materials.map(f => ({ name: f.name, chars: f.chars, preview: f.preview, onView: () => this.viewMaterial(f) })),
+      materialCount: s.materials.length,
+      viewingMaterial: !!s.viewingName, viewingName: s.viewingName, viewingContent: s.viewingContent,
+      closeMaterial: () => this.setState({ viewingName: "", viewingContent: "" }),
+      pasteName: s.pasteName, pasteContent: s.pasteContent, materialError: s.materialError,
+      onPasteName: e => this.setState({ pasteName: e.target.value, materialError: "" }),
+      onPasteContent: e => this.setState({ pasteContent: e.target.value }),
+      pasteDisabled: pasteOff,
+      saveMaterialStyle: "margin-top:18px; white-space:nowrap; border:2.5px solid var(--line); border-radius:999px; padding:11px 28px; font-size:15px; font-weight:900; cursor:" + (pasteOff ? "default" : "pointer") + "; background:" + (pasteOff ? dead : "#35b39a") + "; color:var(--fg); box-shadow:" + (pasteOff ? "none" : "4px 4px 0 var(--line)") + ";",
+      saveMaterial: this.saveMaterial,
+
+      recTime: (n => String(Math.floor(n / 60)).padStart(2, "0") + ":" + String(n % 60).padStart(2, "0"))(s.recSeconds),
+      recButtonLabel: s.recState === "recording" ? "停止" : "开始录音",
+      recButtonStyle: "width:112px; height:112px; flex:none; border-radius:999px; cursor:pointer; font-weight:900; font-size:16px; color:var(--fg); border:3px solid var(--line); background:"
+        + (s.recState === "recording" ? "#f0876b; animation:recRing 1.3s infinite; box-shadow:4px 4px 0 var(--line);" : "var(--surf); box-shadow:5px 5px 0 var(--line);"),
+      recHint: s.recError
+        ? s.recError
+        : (s.recState === "recording" ? "正在录，说完点停止" : (s.recState === "recorded" ? "录好了，转成文字" : "点一下开始，讲一件具体的事")),
+      canTranscribe: s.recState === "recorded",
+      transcribing: s.transcribing,
+      toggleRecord: this.toggleRecord,
+      discardRecording: this.discardRecording,
+      transcribe: this.transcribe,
+
+      toast: s.toast
+    };
+  }
+}
+
+</script>
+</body>
+</html>

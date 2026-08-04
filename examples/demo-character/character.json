@@ -1,8 +1,7 @@
 {
   "id": "demo-character",
-  "name": "林川",
-  "description": "A fictional character used only to demonstrate the public character-pack format.",
+  "name": "Ezreal",
+  "description": "A name-only placeholder used to demonstrate the private Demo UI and character-pack format.",
   "default_voice": "",
   "persona": "persona.md"
 }
-

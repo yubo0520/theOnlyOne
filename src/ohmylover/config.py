@@ -14,6 +14,7 @@ class Settings:
     llm_base_url: str
     llm_api_key: str
     llm_model: str
+    demo_mode: bool
     voice_service_url: str
     memory_top_k: int
     host: str
@@ -32,9 +33,10 @@ class Settings:
             llm_base_url=os.getenv("OML_LLM_BASE_URL", "https://api.openai.com/v1").rstrip("/"),
             llm_api_key=os.getenv("OML_LLM_API_KEY", "").strip(),
             llm_model=os.getenv("OML_LLM_MODEL", "gpt-4.1-mini").strip(),
+            demo_mode=os.getenv("OML_DEMO_MODE", "true").strip().lower()
+            in {"1", "true", "yes", "on"},
             voice_service_url=os.getenv("OML_VOICE_SERVICE_URL", "").strip().rstrip("/"),
             memory_top_k=max(1, int(os.getenv("OML_MEMORY_TOP_K", "5"))),
             host=os.getenv("OML_HOST", "127.0.0.1"),
             port=int(os.getenv("OML_PORT", "8000")),
         )
-

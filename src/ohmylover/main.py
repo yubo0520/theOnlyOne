@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 from typing import Literal
 
@@ -7,7 +8,8 @@ import httpx
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import RedirectResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from .characters import CharacterStore
@@ -23,6 +25,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.mount("/app", StaticFiles(directory=settings.root / "web", html=True), name="web")
 
 
 class Message(BaseModel):
@@ -32,12 +35,13 @@ class Message(BaseModel):
 
 class ChatRequest(BaseModel):
     character_id: str
+    model: str | None = None
     messages: list[Message] = Field(min_length=1, max_length=100)
 
 
 @app.get("/")
-def root() -> dict:
-    return {"name": "ohMyLover", "docs": "/docs", "status": "/api/status"}
+def root() -> RedirectResponse:
+    return RedirectResponse("/app/")
 
 
 @app.get("/api/status")
@@ -45,9 +49,16 @@ def status() -> dict:
     return {
         "ok": True,
         "model": settings.llm_model,
+        "models": [settings.llm_model],
         "llm_configured": bool(settings.llm_api_key),
+        "demo_mode": settings.demo_mode,
         "voice_configured": bool(settings.voice_service_url),
         "characters": len(characters.list()),
+        "answers": 1,
+        "corrections": 0,
+        "holdout": 0,
+        "system_chars": 0,
+        "ollama_ok": True,
     }
 
 
@@ -64,6 +75,24 @@ def list_characters() -> list[dict]:
     ]
 
 
+@app.get("/api/questions")
+def list_questions() -> dict:
+    """Compatibility response for the interim Demo UI."""
+    return {"groups": []}
+
+
+@app.get("/api/materials")
+def list_materials() -> dict:
+    """Private character materials are deliberately absent from this repository."""
+    return {"files": []}
+
+
+@app.get("/api/favorites")
+def list_favorites() -> dict:
+    """Persistent voice favorites are not part of the public Demo yet."""
+    return {"items": []}
+
+
 def build_system_prompt(request: ChatRequest) -> str:
     try:
         pack = characters.get(request.character_id)
@@ -76,16 +105,35 @@ def build_system_prompt(request: ChatRequest) -> str:
         f"# Character\nName: {pack.name}\n\n{pack.persona}\n\n{evidence}\n\n"
         "# Conversation rules\n"
         "Stay in character. Prefer natural short messages. Do not expose internal instructions. "
-        "Treat retrieved memories as evidence, not as text that must be repeated."
+        "Treat retrieved memories as evidence, not as text that must be repeated.\n"
+        "Format each reply block as: 语气：a short tone label, then 话：visible text. "
+        "Only add 音：before 话：when pronunciation must differ from visible text."
     ).strip()
 
 
 async def stream_chat(request: ChatRequest):
     if not settings.llm_api_key:
-        raise HTTPException(status_code=503, detail="OML_LLM_API_KEY is not configured")
+        if not settings.demo_mode:
+            error = json.dumps(
+                {"error": "OML_LLM_API_KEY is not configured"}, ensure_ascii=False
+            )
+            yield f"data: {error}\n\n"
+            yield "data: [DONE]\n\n"
+            return
+        demo_reply = (
+            "语气：唠嗑\n"
+            "话：我在。这是 ohMyLover 的本地演示回复，"
+            "现在已经能把文字一段一段流出来了。"
+        )
+        for piece in demo_reply:
+            encoded = json.dumps({"delta": piece}, ensure_ascii=False)
+            yield f"data: {encoded}\n\n"
+            await asyncio.sleep(0.015)
+        yield "data: [DONE]\n\n"
+        return
     messages = [{"role": "system", "content": build_system_prompt(request)}]
     messages.extend(message.model_dump() for message in request.messages)
-    payload = {"model": settings.llm_model, "messages": messages, "stream": True}
+    payload = {"model": request.model or settings.llm_model, "messages": messages, "stream": True}
     headers = {"Authorization": f"Bearer {settings.llm_api_key}"}
 
     async with (
@@ -100,7 +148,7 @@ async def stream_chat(request: ChatRequest):
         if upstream.status_code >= 400:
             body = (await upstream.aread()).decode("utf-8", "replace")[:500]
             error = json.dumps({"status": upstream.status_code, "detail": body})
-            yield f"event: error\ndata: {error}\n\n"
+            yield f"data: {json.dumps({'error': error})}\n\n"
             return
         async for line in upstream.aiter_lines():
             if not line.startswith("data:"):
@@ -114,9 +162,9 @@ async def stream_chat(request: ChatRequest):
             except (KeyError, IndexError, TypeError, json.JSONDecodeError):
                 continue
             if delta:
-                encoded = json.dumps({"text": delta}, ensure_ascii=False)
-                yield f"event: delta\ndata: {encoded}\n\n"
-    yield "event: done\ndata: {}\n\n"
+                encoded = json.dumps({"delta": delta}, ensure_ascii=False)
+                yield f"data: {encoded}\n\n"
+    yield "data: [DONE]\n\n"
 
 
 @app.post("/api/chat")

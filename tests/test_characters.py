@@ -6,8 +6,8 @@ from ohmylover.characters import CharacterStore
 def test_demo_character_loads():
     root = Path(__file__).resolve().parents[1] / "examples"
     pack = CharacterStore(root).get("demo-character")
-    assert pack.name == "林川"
-    assert "虚构" in pack.persona
+    assert pack.name == "Ezreal"
+    assert "不附带任何第三方作品" in pack.persona
 
 
 def test_path_traversal_is_rejected():
@@ -20,4 +20,3 @@ def test_path_traversal_is_rejected():
             pass
         else:
             raise AssertionError(f"accepted invalid character id: {invalid}")
-
